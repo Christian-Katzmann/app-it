@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Added: Windows beta scaffold (`plugins/app-it-windows/`) — a sibling plugin mirroring the macOS contract with Windows primitives (WPF + WebView2 host, PowerShell lifecycle scripts, multi-resolution `.ico`, Start Menu `.lnk`). Builds and lints in CI on `windows-latest`; **untested on real hardware, looking for a maintainer.** See [docs/WINDOWS.md](docs/WINDOWS.md).
+
 ## 0.1.0 - 2026-05-30
 
 - Extracted `app-it` into a standalone assistant plugin repo.

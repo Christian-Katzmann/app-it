@@ -8,6 +8,8 @@ Turn a local web project into a macOS Dock-launchable `.app` bundle — a native
 
 **Status** — Working, in daily use. The launcher templates are battle-tested across 12+ real projects; `v0.1.0` is the first standalone, marketplace-installable release. macOS only, by design.
 
+**Windows beta** — macOS is in daily use; Windows is scaffolded as an honest beta and looking for a maintainer. A complete, CI-guarded sibling plugin (`plugins/app-it-windows/`) mirrors the macOS contract with Windows primitives — but the author runs only macOS, so it has never been run on real Windows hardware. If you're on Windows and want to help finish it, the doorway is [docs/WINDOWS.md](docs/WINDOWS.md).
+
 **Local-only** — app-it reads your project *on your machine* to choose a launcher strategy. It uploads nothing, runs no telemetry, adds no runtime dependencies, and never touches your business-logic source. The only thing it produces is an `.app` on your own Dock.
 
 `app-it` is an assistant-agnostic plugin/skill. It works with **Claude Code** and **Codex**, and builds a small, repeatable launcher around an existing local project so that double-clicking starts the dev server, opens a native window, keeps the Dock icon as *your* app, and cleans up when you quit.

@@ -58,7 +58,7 @@ Each step activates a skill or runs a command and pastes a short prompt. The pro
 
 ### Phase 3 — Validate, frame, and recruit
 
-- [ ] Step 3.1 — Windows CI lane + `validate.sh` extension
+- [x] Step 3.1 — Windows CI lane + `validate.sh` extension
 - [ ] Step 3.2 — Framing docs (`WINDOWS.md`, `COMPATIBILITY` update, `README` beta callout, `CONTRIBUTING`)
 - [ ] Final review
 

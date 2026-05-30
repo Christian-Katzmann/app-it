@@ -1,5 +1,11 @@
 # Contributing
 
+## Windows maintainer wanted
+
+The Windows lane (`plugins/app-it-windows/`) is a **beta scaffold** — built and CI-guarded from macOS, but never run on real Windows hardware, because the author runs only macOS. If you're a Windows user, this is the highest-leverage contribution in the repo: verifying the seams a Mac can't. Fast review, full credit in the changelog, co-maintainer status if you stick around. Start at **[docs/WINDOWS.md](docs/WINDOWS.md)** — it lays out what works in theory, what a first PR looks like, and how to claim a check.
+
+## macOS contributions
+
 This repo is intentionally narrow: make local web projects launchable from the macOS Dock.
 
 Good contributions improve one of these:
@@ -10,7 +16,7 @@ Good contributions improve one of these:
 - Clearer docs for edge cases.
 - Safer verification.
 
-Please avoid broadening the plugin into general desktop-app distribution, signed customer releases, Electron migration, or Windows support. Those are different products.
+Please avoid broadening the macOS plugin into general desktop-app distribution, signed customer releases, or Electron migration. Those are different products. Windows support is welcome — but as the sibling `plugins/app-it-windows/` plugin (see above), never as a cross-platform flag bolted onto the macOS one.
 
 Before opening a PR:
 
