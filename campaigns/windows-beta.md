@@ -53,7 +53,7 @@ Each step activates a skill or runs a command and pastes a short prompt. The pro
 
 - [x] Step 2.1 — Stand up the `app-it-windows` plugin shell + Windows `SKILL.md`
 - [x] Step 2.2 — C# WPF + WebView2 host (`wrapper-windows`)
-- [ ] Step 2.3 — PowerShell lifecycle templates
+- [x] Step 2.3 — PowerShell lifecycle templates
 - [ ] Step 2.4 — Icon pipeline + Windows config block
 
 ### Phase 3 — Validate, frame, and recruit
