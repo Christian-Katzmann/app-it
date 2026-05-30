@@ -2,9 +2,9 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "app-it",
   "version": "0.1.0",
-  "description": "A single-purpose Claude Code plugin for turning local web projects into macOS Dock-launchable .app bundles.",
+  "description": "A single-purpose assistant plugin for turning local web projects into macOS Dock-launchable .app bundles.",
   "metadata": {
-    "description": "A single-purpose Claude Code plugin for turning local web projects into macOS Dock-launchable .app bundles."
+    "description": "A single-purpose assistant plugin for turning local web projects into macOS Dock-launchable .app bundles."
   },
   "owner": {
     "name": "Christian Katzmann",
@@ -13,7 +13,7 @@
   "plugins": [
     {
       "name": "app-it",
-      "source": "./",
+      "source": "./plugins/app-it",
       "version": "0.1.0",
       "description": "Turn local web projects into macOS Dock-launchable .app bundles for personal daily use.",
       "author": {
@@ -26,6 +26,7 @@
       "category": "development",
       "keywords": [
         "claude-code",
+        "codex",
         "skills",
         "macos",
         "dock",

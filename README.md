@@ -2,7 +2,7 @@
 
 Turn a local web project into a macOS Dock-launchable `.app` bundle.
 
-`app-it` is a Claude Code plugin for personal developer workflows. It creates a small, repeatable launcher around an existing local project so double-clicking an app starts the dev server, opens a native window, keeps the Dock icon as your app, and cleans up when you quit.
+`app-it` is an assistant-agnostic plugin/skill for local developer workflows. It works with Claude Code and Codex, and creates a small, repeatable launcher around an existing local project so double-clicking an app starts the dev server, opens a native window, keeps the Dock icon as your app, and cleans up when you quit.
 
 It is not Electron, Tauri, notarization, auto-update, App Store packaging, or a way to distribute finished apps to customers.
 
@@ -13,13 +13,13 @@ It is not Electron, Tauri, notarization, auto-update, App Store packaging, or a 
 - Copies proven launcher templates into the target project.
 - Builds a macOS `.app` bundle with a Swift `WKWebView` shell by default.
 - Falls back to Chrome app mode when the project needs Chromium-only browser APIs.
-- Installs generated apps into `~/Desktop/MyApps/` by default.
+- Installs generated apps into `~/Applications/App It/` by default.
 - Writes a report explaining what changed and how to undo it.
 
 ## Requirements
 
 - macOS.
-- Claude Code for marketplace installation.
+- Claude Code or Codex for marketplace installation.
 - `swiftc` from Xcode Command Line Tools for the native WebKit shell.
 - Chrome only when the project needs the Chrome fallback path.
 
@@ -31,18 +31,30 @@ xcode-select --install
 
 ## Install
 
-After this repo is public on GitHub:
+After this repo is public on GitHub, install it in the assistant you use.
+
+Claude Code:
 
 ```text
-/plugin marketplace add Christian-Katzmann/app-it
-/plugin install app-it@app-it
+claude plugin marketplace add Christian-Katzmann/app-it
+claude plugin install app-it@app-it
+```
+
+Codex:
+
+```text
+codex plugin marketplace add Christian-Katzmann/app-it
+codex plugin add app-it@app-it
 ```
 
 For local development before publication:
 
 ```text
-/plugin marketplace add /path/to/app-it
-/plugin install app-it@app-it
+claude plugin marketplace add /path/to/app-it
+claude plugin install app-it@app-it
+
+codex plugin marketplace add /path/to/app-it
+codex plugin add app-it@app-it
 ```
 
 ## Manual Skill Install
@@ -50,8 +62,8 @@ For local development before publication:
 Marketplace install is preferred. If you only want the skill folder:
 
 ```bash
-cp -R skills/app-it ~/.claude/skills/app-it
-cp -R skills/app-it ~/.codex/skills/app-it
+cp -R plugins/app-it/skills/app-it ~/.claude/skills/app-it
+cp -R plugins/app-it/skills/app-it ~/.codex/skills/app-it
 ```
 
 Reload your tool, then ask:
@@ -78,6 +90,8 @@ Typical additions:
 - `package.json` scripts for `desktop:build`, `desktop:install`, and `desktop:quit`
 
 The generated `desktop/` bundle and icon build artifacts should be gitignored in the target project.
+
+By default, installed apps are copied to `~/Applications/App It/`. Users who prefer a Dock Stack can drag that folder to the right side of the Dock once. Advanced users can override the destination with `APP_IT_INSTALL_DIR`.
 
 ## Safety Model
 

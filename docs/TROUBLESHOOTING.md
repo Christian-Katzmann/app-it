@@ -22,7 +22,7 @@ Run the target app's documented dev command from the terminal and fix that first
 `app-it` records the actual runtime port in:
 
 ```text
-~/Library/Logs/<App Name>/server.port
+~/Library/Application Support/app-it/<slug>/server.port
 ```
 
 The launcher may choose a nearby free port if the preferred one is already taken. If a project hardcodes a port in `package.json`, `vite.config.*`, or a proxy target, make that port env-driven before rebuilding.
@@ -42,7 +42,7 @@ npm run desktop:build
 npm run desktop:install
 ```
 
-Then verify that the generated app is opening from the install path under `~/Desktop/MyApps/`, not an older build path.
+Then verify that the generated app is opening from the install path under `~/Applications/App It/`, not an older build path.
 
 ## The App Needs To Be Removed
 
@@ -58,5 +58,5 @@ rm -f docs/desktop-launcher.md docs/desktop-launcher.app-it-report.md
 Then remove the installed app:
 
 ```bash
-rm -rf ~/Desktop/MyApps/<AppName>.app
+rm -rf ~/Applications/App\ It/<AppName>.app
 ```

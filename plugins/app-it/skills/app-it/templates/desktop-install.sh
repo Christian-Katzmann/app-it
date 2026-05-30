@@ -1,7 +1,7 @@
 #!/bin/bash
-# Copies every desktop/*.app into ~/Desktop/MyApps/ (or APP_IT_INSTALL_DIR).
-# That folder is meant to live as a Dock Stack — drag it to the right side of
-# the Dock once and every appified app appears there automatically.
+# Copies every desktop/*.app into ~/Applications/App It/ (or APP_IT_INSTALL_DIR).
+# That folder can live as a Dock Stack — drag it to the right side of the Dock
+# once and every appified app appears there automatically.
 #
 # v2 behavior:
 #   1. Honors APP_IT_PROJECT_ROOT (worktree workflow).
@@ -18,10 +18,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="${APP_IT_PROJECT_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 
-TARGET="${APP_IT_INSTALL_DIR:-$HOME/Desktop/MyApps}"
+TARGET="${APP_IT_INSTALL_DIR:-$HOME/Applications/App It}"
 
 if [ ! -d "$TARGET" ]; then
-    if [ "$TARGET" = "$HOME/Desktop/MyApps" ]; then
+    if [ "$TARGET" = "$HOME/Applications/App It" ]; then
         mkdir -p "$TARGET"
         echo "Created $TARGET."
         echo "Drag this folder to the right side of your Dock once,"
@@ -52,9 +52,10 @@ for app in "$ROOT/desktop"/*.app; do
     # Re-bless modification time so Finder refreshes its icon cache.
     touch "$INSTALL_PATH"
 
-    # iCloud Drive syncs ~/Desktop by default and writes com.apple.FinderInfo
-    # into bundle subdirs — that taints any code signature ("resource fork,
-    # Finder information, or similar detritus") and trips Gatekeeper on
+    # iCloud-synced folders (Desktop/Documents, or custom install targets)
+    # can write com.apple.FinderInfo into bundle subdirs — that taints any
+    # code signature ("resource fork, Finder information, or similar
+    # detritus") and trips Gatekeeper on
     # macOS 15+ ("X can't be opened"). Strip xattrs and re-apply the
     # ad-hoc signature at the install location.
     /usr/bin/xattr -cr "$INSTALL_PATH" 2>/dev/null || true

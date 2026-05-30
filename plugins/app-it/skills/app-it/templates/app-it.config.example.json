@@ -2,8 +2,8 @@
   "_comment": "Single source of truth for desktop-build.sh and desktop-quit.sh. Copy this file to scripts/app-it.config.json and customize. Both scripts read it; APPS-table drift (where they had separate copies) is structurally impossible.",
   "_fields": {
     "name": "Display name. Non-ASCII OK (e.g. 'Momó Studio'). The build script will substitute this verbatim into Info.plist's CFBundleName and the bundle's directory name.",
-    "slug": "File-safe slug. Lowercase, hyphens. Used for assets/<slug>-icon.png and Library/Logs paths.",
-    "port": "Preferred port. The launcher tries this first; if busy, scans [port..port+50] for a free port. Records actual runtime port to ~/Library/Logs/<name>/server.port.",
+    "slug": "File-safe slug. Lowercase, hyphens. Used for assets/<slug>-icon.png plus namespaced app-it runtime and log paths.",
+    "port": "Preferred port. The launcher tries this first; if busy, scans [port..port+50] for a free port. Records actual runtime port to ~/Library/Application Support/app-it/<slug>/server.port.",
     "start_command": "Command to start the dev server, run from PROJECT_ROOT. Must honor PORT env var. Vite needs --port via CLI: 'npm run dev -- --port $PORT'. Avoid hardcoded -p literals — use 'pnpm exec next dev' over 'pnpm dev' if package.json hardcodes a port.",
     "bundle_id": "Reverse-DNS bundle identifier. Default 'com.user.<slug>'. NEVER 'com.<your-mac-username>.*' — LaunchServices may reject with error -600.",
     "version": "Marketing version. Doesn't matter for unsigned use; pick anything semver-shaped.",

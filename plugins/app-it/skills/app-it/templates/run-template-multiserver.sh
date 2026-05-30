@@ -10,7 +10,7 @@
 # This template allocates two ports (frontend + backend), exports them
 # distinctly (PORT and API_PORT), boots both via setsid, waits for the
 # frontend port, hands off to the wrapper. Records both ports in
-# ~/Library/Logs/<App>/{server,backend}.port for desktop-quit.sh to sweep.
+# ~/Library/Application Support/app-it/<slug>/{server,backend}.port for cleanup.
 #
 # Required source edits (carve-out from "don't touch app source"):
 #   • Frontend config: server.port reads process.env.PORT
@@ -39,14 +39,15 @@ PREFERRED_BE_PORT=__BACKEND_PORT__
 BACKEND_START_COMMAND="__BACKEND_START_COMMAND__"
 POLYFILL_PATH="__POLYFILL_PATH__"
 
-LOG_DIR="$HOME/Library/Logs/$APP_NAME"
-mkdir -p "$LOG_DIR"
+STATE_DIR="$HOME/Library/Application Support/app-it/$APP_SLUG"
+LOG_DIR="$HOME/Library/Logs/app-it/$APP_SLUG"
+mkdir -p "$STATE_DIR" "$LOG_DIR"
 SERVER_LOG="$LOG_DIR/server.log"
 BACKEND_LOG="$LOG_DIR/backend.log"
-PID_FILE="$LOG_DIR/server.pid"
-PORT_FILE="$LOG_DIR/server.port"
-BACKEND_PID_FILE="$LOG_DIR/backend.pid"
-BACKEND_PORT_FILE="$LOG_DIR/backend.port"
+PID_FILE="$STATE_DIR/server.pid"
+PORT_FILE="$STATE_DIR/server.port"
+BACKEND_PID_FILE="$STATE_DIR/backend.pid"
+BACKEND_PORT_FILE="$STATE_DIR/backend.port"
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 

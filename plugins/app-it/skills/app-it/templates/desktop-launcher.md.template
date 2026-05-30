@@ -1,12 +1,12 @@
 # Desktop launcher
 
-Click an icon in `~/Desktop/MyApps/` (or its Dock Stack) to launch.
+Click an icon in `~/Applications/App It/` (or its Dock Stack) to launch.
 
 ## First launch
 
 1. Right-click the app icon and choose **Open**, then click **Open** in the dialog. macOS remembers and skips this on subsequent launches (Gatekeeper, unsigned bundle).
 2. The first cold start takes 5–15 s while the dev server compiles.
-3. If a "couldn't be opened" alert appears citing the dev server, open `~/Library/Logs/<App Name>/server.log`. The alert quotes the tail; the full log usually shows the cause.
+3. If a "couldn't be opened" alert appears citing the dev server, open `~/Library/Logs/app-it/<slug>/server.log`. The alert quotes the tail; the full log usually shows the cause.
 
 ## Apps
 
@@ -23,7 +23,7 @@ The launcher is **persistent** — designed for daily use, not single-shot demos
 - **Closing the window with the red X does NOT kill the dev server.** It stays warm. Click the icon again and the window opens within ~250 ms.
 - **Cmd+Q (or right-click → Quit in the Dock) DOES kill the server.** Full-shutdown path — use when you actually want everything to stop.
 - **Re-clicking the icon while the window is open** brings the existing window forward. No second window.
-- **Sibling appified apps coexist.** If another `.app` already grabbed the configured port, this launcher scans upward and picks a free port. The runtime port is recorded at `~/Library/Logs/<App>/server.port`.
+- **Sibling appified apps coexist.** If another `.app` already grabbed the configured port, this launcher scans upward and picks a free port. The runtime port is recorded at `~/Library/Application Support/app-it/<slug>/server.port`.
 
 To stop the persistent dev servers from the terminal:
 
@@ -37,10 +37,10 @@ Reboot also works.
 
 ```bash
 ./scripts/desktop-build.sh    # rebuild .app bundle(s) under desktop/
-./scripts/desktop-install.sh  # copy them into ~/Desktop/MyApps/, refresh Dock
+./scripts/desktop-install.sh  # copy them into ~/Applications/App It/, refresh Dock
 ```
 
-The `~/Desktop/MyApps/` folder is meant to live as a Dock Stack — drag it to the right side of the Dock once and every appified app shows up there automatically.
+The `~/Applications/App It/` folder is meant to live as a Dock Stack — drag it to the right side of the Dock once and every appified app shows up there automatically.
 
 ## Replace an app icon
 
@@ -59,11 +59,14 @@ If the Dock briefly shows a stale thumbnail after a reboot, drag the Stack out a
 
 ## Logs & runtime files
 
-Per app, under `~/Library/Logs/<App Name>/`:
+Per app, logs live under `~/Library/Logs/app-it/<slug>/`:
 - `server.log` — dev-server output. If startup fails, an alert quotes the tail.
+- `backend.log` — *(multi-server only)* backend service output.
+
+Per app, runtime state lives under `~/Library/Application Support/app-it/<slug>/`:
 - `server.port` — the actual runtime port (may differ from the configured port if collision-fallback kicked in).
 - `server.pid` — supervisor PID. The launcher's reattach gate walks this PID's descendant tree, so warm re-launch works for `pnpm`/`npm`/`yarn`/`bun`/`concurrently` chains.
-- `backend.log`, `backend.port`, `backend.pid` — *(multi-server only)* backend service equivalents.
+- `backend.port`, `backend.pid` — *(multi-server only)* backend service equivalents.
 
 ## Architecture
 
@@ -78,7 +81,7 @@ desktop/<App Name>.app/
       AppIcon.icns                   # generated from assets/<slug>-icon.png
 ```
 
-`PROJECT_ROOT` is **baked at build time** so the bundle keeps working after it's copied to `~/Desktop/MyApps/`. Re-run `./scripts/desktop-build.sh` if the repo ever moves. Worktree builds bake the worktree path — re-run from the canonical repo location after the worktree merges.
+`PROJECT_ROOT` is **baked at build time** so the bundle keeps working after it's copied to `~/Applications/App It/`. Re-run `./scripts/desktop-build.sh` if the repo ever moves. Worktree builds bake the worktree path — re-run from the canonical repo location after the worktree merges.
 
 ## Known limitations
 

@@ -28,12 +28,13 @@ PREFERRED_PORT=__PORT__
 START_COMMAND="__START_COMMAND__"
 POLYFILL_PATH="__POLYFILL_PATH__"
 
-LOG_DIR="$HOME/Library/Logs/$APP_NAME"
-mkdir -p "$LOG_DIR"
+STATE_DIR="$HOME/Library/Application Support/app-it/$APP_SLUG"
+LOG_DIR="$HOME/Library/Logs/app-it/$APP_SLUG"
+mkdir -p "$STATE_DIR" "$LOG_DIR"
 SERVER_LOG="$LOG_DIR/server.log"
-PID_FILE="$LOG_DIR/server.pid"
-PORT_FILE="$LOG_DIR/server.port"
-PROFILE="$HOME/Library/Application Support/$APP_NAME/BrowserProfile"
+PID_FILE="$STATE_DIR/server.pid"
+PORT_FILE="$STATE_DIR/server.port"
+PROFILE="$STATE_DIR/BrowserProfile"
 mkdir -p "$PROFILE"
 
 KEEP_WARM="${APP_IT_CHROME_KEEP_WARM:-1}"

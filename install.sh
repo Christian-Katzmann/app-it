@@ -20,7 +20,7 @@ fi
 
 SKILL_NAME="app-it"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SRC_DIR="$ROOT_DIR/skills/$SKILL_NAME"
+SRC_DIR="$ROOT_DIR/plugins/$SKILL_NAME/skills/$SKILL_NAME"
 
 CLAUDE_TARGET="$HOME/.claude/skills/$SKILL_NAME"
 CODEX_TARGET="$HOME/.codex/skills/$SKILL_NAME"

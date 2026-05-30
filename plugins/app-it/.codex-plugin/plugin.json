@@ -1,0 +1,41 @@
+{
+  "name": "app-it",
+  "version": "0.1.0",
+  "description": "Turn local web projects into macOS Dock-launchable .app bundles for personal daily use.",
+  "author": {
+    "name": "Christian Katzmann",
+    "url": "https://github.com/Christian-Katzmann"
+  },
+  "homepage": "https://github.com/Christian-Katzmann/app-it",
+  "repository": "https://github.com/Christian-Katzmann/app-it",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "claude-code",
+    "skills",
+    "macos",
+    "dock",
+    "app-bundle",
+    "webkit",
+    "local-dev"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "App It",
+    "shortDescription": "Make local web projects launchable from the macOS Dock.",
+    "longDescription": "App It turns a local web project into a repeatable macOS .app launcher with a native WebKit window, professional app icons, stable port handling, and Dock-friendly install behavior.",
+    "developerName": "Christian Katzmann",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write",
+      "Local"
+    ],
+    "defaultPrompt": [
+      "Use app-it to make this project launchable from the Dock.",
+      "Give this local app a professional icon and macOS launcher.",
+      "Package this project as a local macOS .app."
+    ],
+    "brandColor": "#2F6FED"
+  }
+}

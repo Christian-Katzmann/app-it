@@ -265,10 +265,9 @@ for entry in "${APPS[@]}"; do
     # launched from Finder/Dock with "X can't be opened" — even when
     # there's no quarantine flag. An ad-hoc (self) signature satisfies
     # the "must be signed" check without requiring an Apple Developer
-    # ID. Strip xattrs first because iCloud Drive (which syncs ~/Desktop
-    # and ~/Documents by default) writes com.apple.FinderInfo into
-    # bundle dirs, and codesign refuses with "resource fork, Finder
-    # information, or similar detritus not allowed".
+    # ID. Strip xattrs first because synced folders can write
+    # com.apple.FinderInfo into bundle dirs, and codesign refuses with
+    # "resource fork, Finder information, or similar detritus not allowed".
     /usr/bin/xattr -cr "$APP_DIR" 2>/dev/null || true
     if ! /usr/bin/codesign --force --deep --sign - "$APP_DIR" >/dev/null 2>&1; then
         echo "  WARN: codesign --sign - failed for $APP_DIR (app may be blocked by Gatekeeper)" >&2
@@ -277,4 +276,4 @@ done
 
 echo
 echo "Built ${#APPS[@]} app(s) under $ROOT/desktop/  (mode: $LAUNCHER_MODE)"
-echo "  Install:  ./scripts/desktop-install.sh    # copies to ~/Desktop/MyApps/, refreshes Dock"
+echo "  Install:  ./scripts/desktop-install.sh    # copies to ~/Applications/App It/, refreshes Dock"

@@ -109,23 +109,24 @@ $GREP_CMD "\.createWritable\(|\.getFile\(\)|writable\.write\(" \
     --include='*.{ts,tsx,js,jsx}' src/ services/ app/ 2>/dev/null | head -8 || echo "  (none found)"
 
 print_section "Sibling appified apps & their preferred ports (collision check)"
-if [ -d "$HOME/Desktop/MyApps" ]; then
-    PORTS_FOUND=""
-    for app in "$HOME/Desktop/MyApps"/*.app; do
+PORTS_FOUND=""
+for install_dir in "$HOME/Applications/App It" "$HOME/Desktop/MyApps"; do
+    [ -d "$install_dir" ] || continue
+    for app in "$install_dir"/*.app; do
         [ -d "$app" ] || continue
         name="$(basename "$app" .app)"
         run_script="$app/Contents/MacOS/run"
         if [ -f "$run_script" ]; then
-            port="$(grep -E "^PREFERRED_PORT=" "$run_script" 2>/dev/null | head -1 | cut -d= -f2 || true)"
+            port="$(grep -E "^PREFERRED(_FE)?_PORT=" "$run_script" 2>/dev/null | head -1 | cut -d= -f2 || true)"
             if [ -n "$port" ]; then
-                echo "  $name → :$port"
+                echo "  $name → :$port ($install_dir)"
                 PORTS_FOUND="$PORTS_FOUND $port"
             fi
         fi
     done
-    if [ -z "$PORTS_FOUND" ]; then echo "  (no .app launchers with PREFERRED_PORT found)"; fi
-else
-    echo "  ~/Desktop/MyApps not yet created"
+done
+if [ -z "$PORTS_FOUND" ]; then
+    echo "  (no app-it launchers found under ~/Applications/App It or legacy ~/Desktop/MyApps)"
 fi
 
 print_section "Currently bound ports (3000–5200 range)"

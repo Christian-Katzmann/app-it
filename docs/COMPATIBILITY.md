@@ -10,7 +10,7 @@
 | Primary shell | Swift `WKWebView` wrapper |
 | Fallback shell | Chrome `--app` mode |
 | Common targets | Vite, Next.js, static sites, local multi-server apps |
-| Install destination | `~/Desktop/MyApps/` by default |
+| Install destination | `~/Applications/App It/` by default |
 | Signing | Ad-hoc local code signing only |
 
 ## Not Supported

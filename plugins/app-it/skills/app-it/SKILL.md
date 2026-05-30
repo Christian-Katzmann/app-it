@@ -5,7 +5,7 @@ description: >-
   Use when the user asks to make something clickable from the Dock, package it
   as an app, give it an icon, or put it in MyApps. Chooses sensible
   packaging defaults, creates repeatable scripts, installs to
-  `~/Desktop/MyApps/`, and verifies click-to-open behavior, port handling,
+  `~/Applications/App It/`, and verifies click-to-open behavior, port handling,
   warm reattach, window-close vs Cmd+Q behavior, and cleanup. Generated apps
   ship with a full standard macOS menu bar (Cmd+Q quit, Cmd+W close window,
   Cmd+M minimize, Cmd+H hide, Cmd+- / Cmd+= / Cmd+0 page zoom, Cmd+R reload,
@@ -21,7 +21,7 @@ description: >-
 1. **Minimum work for the user. Maximum repeatability. No over-engineering.**
 2. **Decide. Don't ask.** When this skill prescribes a default, use it. Building a `.app` is reversible — pick the best option, ship it, document tradeoffs in the report. Only ask if the project is genuinely ambiguous *and* the default would do something destructive. Treat explicit `/app-it` invocation as the user's plan approval; project CLAUDE.md "check in first" notes do not require a second prompt.
 3. **Click → it works.** No second terminal, no manual `npm install`, no manual server starts, no "first run setup". Double-click → window appears showing the app → red-X leaves the dev server warm for fast re-launch → Cmd+Q kills everything.
-4. **One folder, one Dock Stack.** Install destination is `~/Desktop/MyApps/`, which the user has pinned to their Dock as a Stack. New apps appear in the Stack automatically. Fall back to `/Applications/` only when explicitly requested.
+4. **One folder, one Dock Stack.** Install destination is `~/Applications/App It/` by default. Users can drag that folder to the right side of the Dock once as a Stack. Use `~/Desktop/MyApps/` or `/Applications/` only when explicitly requested.
 5. **One project may produce multiple apps.** Detect this; create one `.app` per user-facing app; do not bundle them.
 6. **The `.app` keeps its own Dock icon.** This means the foreground process must be ours, not Chrome's. Default launcher is a small Swift `WKWebView` shell that the skill ships and compiles. Chrome `--app=` is a documented fallback only.
 7. **Trust disk over docs.** `CLAUDE.md`, `AGENTS.md`, `README.md` may be stale, template-copied from another project, or describe an intended state not yet implemented. Always verify project type from `package.json` + config files. If docs and disk disagree, trust disk and note the discrepancy in the report.
@@ -58,7 +58,7 @@ templates/
   run-template-multiserver.sh      # bash launcher for cohabiting FE+BE
   desktop-build.sh                 # builds the bundles, compiles wrapper (universal)
   desktop-icons.sh                 # generates AppIcon.icns from a source PNG/SVG
-  desktop-install.sh               # copies bundles to ~/Desktop/MyApps/, refreshes Dock
+  desktop-install.sh               # copies bundles to ~/Applications/App It/, refreshes Dock
   desktop-quit.sh                  # stops daemonized servers + wrapper windows
   inspect.sh                       # Phase-1 inspection helper (one-shot project probe)
   placeholder-icon-gen.sh          # last-resort icon generator (SVG via brand tokens)
@@ -99,7 +99,7 @@ Then answer all of these. Do not modify files.
 11. **Asset inventory per app.** Find candidate icon sources (see [Asset discovery](#asset-discovery)). Parse `manifest.json` first when present. Reject icons whose filenames mirror `src/features/<name>/` — those are content, not the app's own mark.
 12. **Project-name resolution.** When folder name, `package.json` `name`, `metadata.json` `name`, in-app titles, and recent commit subjects disagree, score by priority: recent commit subjects (user's actual vocabulary) → `displayName` → human-looking `metadata.json` `name` → folder humanized → `package.json` `name` last and only if not slug-shaped. **Reject** `package.json` names containing `---` or matching scaffold patterns (`vite-project`, `next-app`). Surface conflicts in the report so the user can override.
 13. **Bundle-ID prefix.** Mandate `com.user.<slug>` as the default. **Reject** `com.$(id -un).*` — LaunchServices treats it as a personal-team developer prefix and refuses unsigned bundles with `_LSOpenURLs… error -600 / procNotFound`. Country-coded reverse-DNS (`dk.example.app`) is also a clean choice for projects with a real domain.
-14. **Install destination.** `~/Desktop/MyApps/` (auto-create if missing) unless the user explicitly requested `/Applications/`.
+14. **Install destination.** `~/Applications/App It/` (auto-create if missing) unless the user explicitly requested `~/Desktop/MyApps/`, `/Applications/`, or another path.
 15. **Project root path.** Resolve to a *persistent* absolute path (post-worktree-strategy from step 1). The build script bakes this; it cannot be re-derived from `$0` after install.
 
 ### Phase 2 — Decide
@@ -174,7 +174,7 @@ For A3 multi-server, add `"backend_port"` and `"backend_start_command"`. The bui
 **Substitution placeholders** baked into the run-script at build time:
 - `__APP_NAME__`, `__APP_SLUG__` — display name (may be non-ASCII), file-safe slug.
 - `__PROJECT_ROOT__` — absolute path to repo, baked at build time.
-- `__PORT__` — *preferred* port. Launcher tries first, scans upward for free port if taken, records actual runtime port to `~/Library/Logs/<App>/server.port`.
+- `__PORT__` — *preferred* port. Launcher tries first, scans upward for free port if taken, records actual runtime port to `~/Library/Application Support/app-it/<slug>/server.port`.
 - `__START_COMMAND__` — must honor `PORT` env. See [Framework PORT cheat sheet](#framework-port-cheat-sheet).
 - `__BUNDLE_ID__`, `__VERSION__` — reverse-DNS bundle id, marketing version.
 - `__POLYFILL_PATH__` — absolute path to a JS polyfill file (empty if none).
@@ -202,14 +202,14 @@ For each `.app`, run the checks below. **Three buckets** — never claim success
 |---|---|---|---|
 | 1 | Build succeeded | `[x]` | `.app` exists; `file <wrapper>` reports `Mach-O … executable`; `file <AppIcon.icns>` reports `Mac OS X icon` |
 | 2 | Bundle metadata | `[x]` | `/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' .../Info.plist`; `… CFBundleName`; substituted, no `__PLACEHOLDER__` left |
-| 3 | Runtime port discovery | `[x]` | `RUNTIME_PORT=$(cat $HOME/Library/Logs/<App>/server.port)` — *always read this first*, never hardcode `PREFERRED_PORT` |
+| 3 | Runtime port discovery | `[x]` | `RUNTIME_PORT=$(cat "$HOME/Library/Application Support/app-it/<slug>/server.port")` — *always read this first*, never hardcode `PREFERRED_PORT` |
 | 4 | Server responding | `[x]` | `curl -sS -o /dev/null -w "%{http_code}" http://localhost:$RUNTIME_PORT` — any non-`000` counts (5xx is a project-state issue, not a launcher issue) |
 | 5 | Wrapper alive, single instance | `[x]` | `pgrep -af "<App>.app/Contents/MacOS/wrapper"` exactly 1 row (use bundle-name path, not bare `wrapper`, to avoid cross-app noise) |
 | 6 | Bundle identity registered | `[x]` | `lsappinfo info -only bundleid <ASN>` matches `<bundle-id>` from config |
-| 7 | Cmd+Q kills server tree | `[x]` | `osascript -e 'tell application id "<bundle-id>" to quit'`, then `lsof -ti tcp:$RUNTIME_PORT` is empty within 2s. **Multi-server (A3.2):** also assert `lsof -ti tcp:$BACKEND_RUNTIME_PORT` is empty (read from `~/Library/Logs/<App>/backend.port`). `wrapper.swift` discovers `backend.pid`/`backend.port` as siblings of `server.pid`; if the backend leaks, the sibling-discovery code path is broken or the multiserver template stopped writing those files. **Never use `kill -TERM` to wrapper PID** — bypasses `applicationShouldTerminate` and gives a false-fail. |
+| 7 | Cmd+Q kills server tree | `[x]` | `osascript -e 'tell application id "<bundle-id>" to quit'`, then `lsof -ti tcp:$RUNTIME_PORT` is empty within 2s. **Multi-server (A3.2):** also assert `lsof -ti tcp:$BACKEND_RUNTIME_PORT` is empty (read from `~/Library/Application Support/app-it/<slug>/backend.port`). `wrapper.swift` discovers `backend.pid`/`backend.port` as siblings of `server.pid`; if the backend leaks, the sibling-discovery code path is broken or the multiserver template stopped writing those files. **Never use `kill -TERM` to wrapper PID** — bypasses `applicationShouldTerminate` and gives a false-fail. |
 | 8 | Red-X leaves server warm | `[x]` | `osascript -e 'tell application id "<bundle-id>" to close every window'`; `lsof -ti tcp:$RUNTIME_PORT` is non-empty 1s later |
 | 9 | Warm re-launch fast | `[x]` | re-`open`; HTTP 200 within ~250ms (cold-start would be 3s+); confirms F38 reattach gate works for this `START_COMMAND` shape |
-| 10 | Install path opens cleanly | `[x]` | `open "$HOME/Desktop/MyApps/<App>.app"; echo "exit=$?"` — must be `0`. **Never substitute `open <build-path>`** — different LS paths, different failure modes. |
+| 10 | Install path opens cleanly | `[x]` | `open "$HOME/Applications/App It/<App>.app"; echo "exit=$?"` — must be `0`. **Never substitute `open <build-path>`** — different LS paths, different failure modes. |
 | 11 | Install path matches build | `[x]` | `lsregister -dump 2>/dev/null \| grep -B1 "<bundle-id>" \| head` — exactly one entry; if two, run `lsregister -u <build-path>` |
 | 12 | Window shows app content (not error page) | `[ ] needs human` | unless display available |
 | 13 | Dock icon is OUR icon (not Chrome's, not Safari's) | `[ ] needs human` | unless display available |
@@ -217,7 +217,7 @@ For each `.app`, run the checks below. **Three buckets** — never claim success
 | 15 | FSA reconnect-on-load works *(if FSA polyfill)* | `[ ] needs human` | |
 | 16 | Standard keyboard shortcuts respond | `[ ] needs human` | Cmd+Q kills app+server; Cmd+W closes window leaving server warm; Cmd+R reloads; Cmd+Shift+R force-reloads; Cmd+-/=/0 zoom out/in/reset; Cmd+M minimizes; Cmd+Ctrl+F fullscreen; Edit menu (Cmd+X/C/V/Z/A). All wired in `wrapper.swift`'s `buildMenu()`. **Programmatic check:** `grep -qboa "reloadPageIgnoringCache" app.app/Contents/MacOS/wrapper` — exits 0 if shortcuts are present. Do NOT use `strings \| grep "Force Reload"` — Swift -O inlines string literals in a format `strings` misses. **If absent: the installed wrapper is a pre-menu-bar binary — run `desktop:build && desktop:install` in that project.** |
 
-**Defer-and-document bucket**: when the agent's environment makes verification hostile — same-project dev server already running on the preferred port (would corrupt `.next/` cache via competing Turbopack), or different-project holding a port that this project's launcher can't fall back from (hardcoded proxy target) — do **not** spawn a competing instance. Mark these `[ ] deferred — env hostile`, write the user-action one-liner in the report (e.g., `pkill -f "next dev.*$PROJECT_ROOT" && open ~/Desktop/MyApps/<App>.app`).
+**Defer-and-document bucket**: when the agent's environment makes verification hostile — same-project dev server already running on the preferred port (would corrupt `.next/` cache via competing Turbopack), or different-project holding a port that this project's launcher can't fall back from (hardcoded proxy target) — do **not** spawn a competing instance. Mark these `[ ] deferred — env hostile`, write the user-action one-liner in the report (e.g., `pkill -f "next dev.*$PROJECT_ROOT" && open "$HOME/Applications/App It/<App>.app"`).
 
 **Pre-flight smoke test before clicking the `.app`** (separates project-broken from launcher-broken):
 ```bash
@@ -256,7 +256,7 @@ This is automatic — no action needed at build time. The verification table row
 Apps built before the codesign step was added show ⊘ in Finder and refuse to open. Preferred fix is to rebuild each project (`desktop:build && desktop:install`), which re-compiles the wrapper and re-signs. If rebuilding is impractical, sign in place:
 
 ```bash
-cd ~/Desktop/MyApps
+cd "$HOME/Applications/App It"
 for app in *.app; do
     /usr/bin/xattr -cr "$app" 2>/dev/null || true
     /usr/bin/codesign --force --deep --sign - "$app" 2>/dev/null && echo "OK: $app"
@@ -330,7 +330,7 @@ desktop/<AppName>.app/
 ```
 
 **Shipped runtime defenses (don't reimplement, don't drop):**
-- **Runtime port-fallback.** Scans `[PREFERRED..PREFERRED+50]` at click time, picks first free port, records actual port to `~/Library/Logs/<App>/server.port`. Sibling appified apps coexist without coordination.
+- **Runtime port-fallback.** Scans `[PREFERRED..PREFERRED+50]` at click time, picks first free port, records actual port to `~/Library/Application Support/app-it/<slug>/server.port`. Sibling appified apps coexist without coordination.
 - **Two-stage readiness probe.** Port-bound first (any process listening), then any HTTP response (5xx counts — the wrapper shows the user the real error in-window).
 - **Permissive descendant-walk reattach.** Recorded supervisor PID (e.g. `pnpm dev`) is treated as the root of an ownership tree — actual listener (`next-server`) can be a great-grandchild. Warm re-launch reattaches in ~250ms even for `pnpm`/`npm`/`yarn`/`bun`/`concurrently` supervisor chains.
 - **`setsid` daemonization.** Detaches the dev server from the wrapper's process group so SIGHUP propagation can't kill it on wrapper exit.
@@ -339,7 +339,7 @@ desktop/<AppName>.app/
 - **Two-stage cleanup in `desktop-quit.sh`.** TERM the recorded PID tree → port-sweep stragglers → SIGKILL holdouts. Catches reparented children that single-stage cleanup misses.
 - **Sibling-discovery cleanup in `wrapper.swift::killServer()`.** Cmd+Q on a multi-server (A3.2) `.app` would otherwise leak the backend — the wrapper only knows the FE pid/port via argv. The wrapper looks for `backend.pid` and `backend.port` as siblings of the FE pid file and tears them down on quit. No-op for single-server. Discovered 2026-04-29 on Music Videolizer (FE :5173 freed in <1s, BE :3002 kept listening).
 
-**`PROJECT_ROOT` is baked at build time.** Honors `APP_IT_PROJECT_ROOT` env override. Never derive from `$0`'s parent — the `.app` is copied to `~/Desktop/MyApps/` on install.
+**`PROJECT_ROOT` is baked at build time.** Honors `APP_IT_PROJECT_ROOT` env override. Never derive from `$0`'s parent — the `.app` is copied to `~/Applications/App It/` on install.
 
 ## Strategy A1 fallback — Chrome `--app=`
 
@@ -370,7 +370,7 @@ If the project already has multi-process orchestration (`concurrently`, `npm-run
 
 ### A3.2 — `run-template-multiserver.sh` with env-driven ports
 
-When no orchestrator exists or the orchestrator misbehaves on signals. The shipped `run-template-multiserver.sh` allocates two ports (FE + BE), exports them as distinct env vars (`PORT`, `API_PORT`), boots both via sequential `setsid` spawn, waits for the frontend port, records both ports. `wrapper.swift`'s `killServer()` discovers `backend.pid` / `backend.port` as siblings of the FE pid file in `~/Library/Logs/<App>/`, so Cmd+Q tears down both servers without further argv plumbing — `desktop-quit.sh` is the defensive fallback for re-parented children, not the primary path.
+When no orchestrator exists or the orchestrator misbehaves on signals. The shipped `run-template-multiserver.sh` allocates two ports (FE + BE), exports them as distinct env vars (`PORT`, `API_PORT`), boots both via sequential `setsid` spawn, waits for the frontend port, records both ports. `wrapper.swift`'s `killServer()` discovers `backend.pid` / `backend.port` as siblings of the FE pid file in `~/Library/Application Support/app-it/<slug>/`, so Cmd+Q tears down both servers without further argv plumbing — `desktop-quit.sh` is the defensive fallback for re-parented children, not the primary path.
 
 **Required edits** (carve-out from "don't touch app source"):
 - Frontend config: `server.port` reads `process.env.PORT`; `strictPort: true` (Vite); proxy target reads `process.env.API_PORT`.
@@ -480,7 +480,7 @@ Hard-won from real-project iteration. Do not rediscover these:
 - **Don't path-match `pgrep -f` on paths with non-ASCII characters.** macOS stores command lines in NFD; shell strings are typically NFC. The templates key on URL/port (ASCII). When matching wrappers, use `<App>.app/Contents/MacOS/wrapper` (bundle-name path) — the bundle name is uniquely identifying and `.app/` is ASCII even when the bundle name itself contains accented characters.
 - **Don't trust `curl HTTP 200` as page-works verification.** Several "should work" theories pass curl and still show a blank window in the wrapper. Verification requires opening the actual `.app` and seeing the actual content. Read `server.port` *first*, then curl that port, never the configured port.
 - **Don't use `kill -TERM` against the wrapper PID to verify Cmd+Q semantics.** Signals bypass AppKit's lifecycle. Use `osascript -e 'tell application id "<bundle-id>" to quit'` — that sends a Quit Apple Event, routing through `applicationShouldTerminate`, which is the real Cmd+Q code path.
-- **Don't derive `PROJECT_ROOT` from `$0`'s parent.** The `.app` is copied to `~/Desktop/MyApps/` on install. Bake the absolute repo path at build time via the build script's `ROOT="$(cd "$(dirname "$0")/.." && pwd)"`, honoring `APP_IT_PROJECT_ROOT` env override for worktree workflows. The launcher refuses to start if the path no longer exists.
+- **Don't derive `PROJECT_ROOT` from `$0`'s parent.** The `.app` is copied to `~/Applications/App It/` on install. Bake the absolute repo path at build time via the build script's `ROOT="$(cd "$(dirname "$0")/.." && pwd)"`, honoring `APP_IT_PROJECT_ROOT` env override for worktree workflows. The launcher refuses to start if the path no longer exists.
 - **Don't symlink `node_modules` from main into a worktree.** Turbopack and several other bundlers reject it (`Symlink node_modules is invalid, it points out of the filesystem root`). The only correct answer is baking the canonical path.
 - **Don't use single-stage cleanup.** pnpm/vite/esbuild re-parent grandchildren to `launchd` before the trap fires. Use the two-stage pattern in `desktop-quit.sh`: TERM the recorded PID tree → sweep `lsof -ti tcp:$PORT` with TERM → wait 1.5s → SIGKILL stragglers.
 - **Don't omit PATH augmentation.** Finder/Dock launches start with bare `PATH=/usr/bin:/bin`. The shipped template covers Homebrew, nvm-latest, pnpm-store, Bun (`$HOME/.bun/bin`), Deno (`$HOME/.deno/bin`), Volta (`$HOME/.volta/bin`), mise/asdf shims, cargo. Don't strip entries when adapting.
@@ -561,7 +561,7 @@ Always write this file from `templates/desktop-launcher.md.template`. Keep under
 > ## First launch
 > 1. Right-click the app icon and choose **Open**, then click **Open** in the dialog. macOS will remember and skip this on subsequent launches (Gatekeeper, unsigned bundle).
 > 2. The first cold start takes 5–15 s while the dev server compiles.
-> 3. If a "couldn't be opened" alert appears citing the dev server, open `~/Library/Logs/<App>/server.log`. The alert quotes the tail; the full log usually shows the cause.
+> 3. If a "couldn't be opened" alert appears citing the dev server, open `~/Library/Logs/app-it/<slug>/server.log`. The alert quotes the tail; the full log usually shows the cause.
 
 For chrome-fallback launchers, document `desktop:quit` as the **primary** shutdown command (Cmd+Q does not kill the daemon).
 
@@ -620,13 +620,13 @@ Replace `assets/<slug>-icon.png`, then `pnpm desktop:icons:<app> && pnpm desktop
 
 **8. Build / install / quit commands:**
 - Build: `pnpm desktop:build`
-- Install: `pnpm desktop:install` (→ ~/Desktop/MyApps/)
+- Install: `pnpm desktop:install` (→ ~/Applications/App It/)
 - Quit: `pnpm desktop:quit` (stops daemonized servers)
 
 **9. Generated launcher locations:**
 - Repo: `desktop/<AppName>.app`
-- Installed: `~/Desktop/MyApps/<AppName>.app`
-- Runtime port (after first click): `~/Library/Logs/<App Name>/server.port`
+- Installed: `~/Applications/App It/<AppName>.app`
+- Runtime port (after first click): `~/Library/Application Support/app-it/<slug>/server.port`
 
 **10. Verification (per app):**
 - [x] Build succeeded; `.app` exists; wrapper is universal Mach-O; `.icns` is multi-resolution
@@ -641,8 +641,8 @@ Replace `assets/<slug>-icon.png`, then `pnpm desktop:icons:<app> && pnpm desktop
 - [ ] deferred — env hostile: <reason, with user-action one-liner> *(if applicable)*
 
 **11. Dock Stack:**
-- [x] `~/Desktop/MyApps/` exists
-- [ ] User has dragged `~/Desktop/MyApps/` to the right side of the Dock (one-time setup; mention if not done)
+- [x] `~/Applications/App It/` exists
+- [ ] User has dragged `~/Applications/App It/` to the right side of the Dock (one-time setup; mention if not done)
 
 **12. Known limitations:**
 - <e.g. unsigned bundle — Gatekeeper warns on first launch>

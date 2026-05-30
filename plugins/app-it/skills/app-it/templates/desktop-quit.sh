@@ -20,23 +20,25 @@ ROOT="${APP_IT_PROJECT_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 CONFIG_FILE="$SCRIPT_DIR/app-it.config.json"
 
 # --- Load apps from JSON (preferred) or bash array (backward compat) -----
-# Internal record per app: name|preferred_port|backend_port
+# Internal record per app: name|slug|preferred_port|backend_port
 APPS=()
 if [ -f "$CONFIG_FILE" ]; then
     while IFS= read -r line; do
         [ -n "$line" ] && APPS+=("$line")
     done < <(/usr/bin/python3 - "$CONFIG_FILE" <<'PY'
-import json, sys
+import json, re, sys
 with open(sys.argv[1]) as f:
     cfg = json.load(f)
 for a in cfg.get("apps", []):
-    print(f'{a.get("name","")}|{a.get("port","")}|{a.get("backend_port") or ""}')
+    name = a.get("name", "")
+    slug = a.get("slug") or re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+    print(f'{name}|{slug}|{a.get("port","")}|{a.get("backend_port") or ""}')
 PY
 )
 else
     APPS=(
-      # Replace these with your apps. Format: name|preferred_port|backend_port
-      "__APP_NAME__|__PORT__|"
+      # Replace these with your apps. Format: name|slug|preferred_port|backend_port
+      "__APP_NAME__|__APP_SLUG__|__PORT__|"
     )
 fi
 
@@ -91,12 +93,12 @@ sweep_port() {
 
 CLOSED_ANY=0
 for entry in "${APPS[@]}"; do
-    IFS='|' read -r APP_NAME PREFERRED_PORT BACKEND_PORT <<<"$entry"
-    LOG_DIR="$HOME/Library/Logs/$APP_NAME"
-    PID_FILE="$LOG_DIR/server.pid"
-    PORT_FILE="$LOG_DIR/server.port"
-    BACKEND_PID_FILE="$LOG_DIR/backend.pid"
-    BACKEND_PORT_FILE="$LOG_DIR/backend.port"
+    IFS='|' read -r APP_NAME APP_SLUG PREFERRED_PORT BACKEND_PORT <<<"$entry"
+    STATE_DIR="$HOME/Library/Application Support/app-it/$APP_SLUG"
+    PID_FILE="$STATE_DIR/server.pid"
+    PORT_FILE="$STATE_DIR/server.port"
+    BACKEND_PID_FILE="$STATE_DIR/backend.pid"
+    BACKEND_PORT_FILE="$STATE_DIR/backend.port"
 
     # Frontend: prefer recorded runtime port, fall back to configured.
     PORT="$(cat "$PORT_FILE" 2>/dev/null || true)"
@@ -137,7 +139,7 @@ done
 # Native WebKit wrapper windows — match by bundle-name path (.app component
 # is ASCII even when bundle name has accents) plus the app name in argv.
 for entry in "${APPS[@]}"; do
-    IFS='|' read -r APP_NAME _ _ <<<"$entry"
+    IFS='|' read -r APP_NAME APP_SLUG _ _ <<<"$entry"
     for p in $(pgrep -f "MacOS/wrapper http://localhost:" 2>/dev/null); do
         cmdline="$(ps -o command= -p "$p" 2>/dev/null || true)"
         if echo "$cmdline" | grep -qF "$APP_NAME"; then
@@ -146,7 +148,7 @@ for entry in "${APPS[@]}"; do
         fi
     done
     # Chrome --user-data-dir windows from chrome-fallback builds.
-    PROFILE="$HOME/Library/Application Support/$APP_NAME/BrowserProfile"
+    PROFILE="$HOME/Library/Application Support/app-it/$APP_SLUG/BrowserProfile"
     for p in $(pgrep -f "user-data-dir=$PROFILE" 2>/dev/null); do
         kill -TERM "$p" 2>/dev/null || true
         CLOSED_ANY=1
