@@ -16,3 +16,94 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: Validate plugin
         run: ./scripts/validate.sh
+
+  # Required: this job gates merge so a maintainer PR cannot accidentally regress
+  # the Windows scaffold. The macos-latest job validates the macOS plugin; this
+  # job validates the Windows plugin, which macOS CI cannot run.
+  #
+  # Checks performed:
+  #   1. PSScriptAnalyzer lint on every .ps1 in the Windows templates tree
+  #   2. dotnet restore + dotnet build on the WPF/WebView2 wrapper
+  #   3. JSON parse-validate on both plugin manifests (.claude-plugin + .codex-plugin)
+  #   4. placeholder-icon-gen.ps1 end-to-end round-trip — must produce a readable .ico
+  validate-windows:
+    runs-on: windows-latest
+    steps:
+      # Pinned to a commit SHA (supply-chain hygiene); comment tracks the tag.
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      # 1. Lint PowerShell scripts --------------------------------------------------
+      - name: Install PSScriptAnalyzer
+        shell: pwsh
+        run: Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
+
+      - name: Lint PowerShell scripts (Error + Warning)
+        shell: pwsh
+        run: |
+          $templates = 'plugins/app-it-windows/skills/app-it-windows/templates'
+          $scripts   = Get-ChildItem -Path $templates -Filter '*.ps1' -Recurse
+          $failed    = [System.Collections.Generic.List[string]]::new()
+          foreach ($s in $scripts) {
+            $results = Invoke-ScriptAnalyzer -Path $s.FullName -Severity 'Error','Warning'
+            if ($results) {
+              $results | ForEach-Object {
+                Write-Warning "$($s.Name) [$($_.RuleName) line $($_.Line)]: $($_.Message)"
+              }
+              $failed.Add($s.Name)
+            }
+          }
+          if ($failed.Count -gt 0) {
+            Write-Error "PSScriptAnalyzer issues in: $($failed -join ', ')"
+            exit 1
+          }
+          Write-Host "All $($scripts.Count) PowerShell scripts pass PSScriptAnalyzer."
+
+      # 2. Build the C# WPF + WebView2 wrapper -------------------------------------
+      - name: dotnet restore wrapper-windows
+        run: >
+          dotnet restore
+          plugins/app-it-windows/skills/app-it-windows/templates/wrapper-windows/wrapper.csproj
+
+      - name: dotnet build wrapper-windows
+        run: >
+          dotnet build
+          plugins/app-it-windows/skills/app-it-windows/templates/wrapper-windows/wrapper.csproj
+          --no-restore --configuration Release
+
+      # 3. Parse-validate plugin manifests as JSON ----------------------------------
+      - name: Validate plugin manifests (JSON)
+        shell: pwsh
+        run: |
+          $manifests = @(
+            'plugins/app-it-windows/.claude-plugin/plugin.json',
+            'plugins/app-it-windows/.codex-plugin/plugin.json'
+          )
+          foreach ($f in $manifests) {
+            $null = Get-Content $f -Raw | ConvertFrom-Json -ErrorAction Stop
+            Write-Host "JSON OK: $f"
+          }
+
+      # 4. placeholder-icon-gen round-trip: must produce a readable .ico -----------
+      - name: Run placeholder-icon-gen and verify .ico
+        shell: pwsh
+        run: |
+          $workDir = Join-Path $env:RUNNER_TEMP 'app-it-ci-icon-test'
+          New-Item -ItemType Directory -Force -Path $workDir | Out-Null
+
+          $env:APP_NAME           = 'CITestApp'
+          $env:APP_SLUG           = 'ci-test-app'
+          $env:APP_IT_PROJECT_ROOT = $workDir
+
+          & 'plugins/app-it-windows/skills/app-it-windows/templates/placeholder-icon-gen.ps1'
+
+          $ico = Join-Path $workDir "desktop\CITestApp\CITestApp.ico"
+          if (-not (Test-Path $ico)) {
+            Write-Error "Expected .ico not found at: $ico"
+            exit 1
+          }
+          $bytes = (Get-Item $ico).Length
+          if ($bytes -lt 64) {
+            Write-Error ".ico at $ico is suspiciously small ($bytes bytes)"
+            exit 1
+          }
+          Write-Host "ICO verified: $ico ($bytes bytes)"

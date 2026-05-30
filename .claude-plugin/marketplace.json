@@ -39,6 +39,38 @@
         "developer-tools",
         "local-dev"
       ]
+    },
+    {
+      "name": "app-it-windows",
+      "source": "./plugins/app-it-windows",
+      "version": "0.1.0",
+      "description": "Turn local web projects into Windows Start Menu launchable .exe apps. Beta · scaffolded · untested on real hardware · maintainer wanted.",
+      "author": {
+        "name": "Christian Katzmann",
+        "url": "https://github.com/Christian-Katzmann"
+      },
+      "homepage": "https://github.com/Christian-Katzmann/app-it/blob/main/docs/WINDOWS.md",
+      "repository": "https://github.com/Christian-Katzmann/app-it",
+      "license": "MIT",
+      "category": "development",
+      "keywords": [
+        "claude-code",
+        "codex",
+        "skills",
+        "windows",
+        "start-menu",
+        "taskbar",
+        "webview2",
+        "wpf",
+        "local-dev",
+        "beta"
+      ],
+      "tags": [
+        "windows",
+        "beta",
+        "developer-tools",
+        "local-dev"
+      ]
     }
   ]
 }
