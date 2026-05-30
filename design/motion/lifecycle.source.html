@@ -19,10 +19,9 @@
   .slot.ph{background:linear-gradient(180deg,#fbfcfe,#e9edf3);box-shadow:0 2px 6px rgba(27,36,48,.08);opacity:.9;}
   .slot.app{width:60px;height:60px;}
   .slot.app img{width:60px;height:60px;display:block;border-radius:14px;box-shadow:0 4px 14px rgba(47,111,237,.42);}
-  .run{position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:#3a4456;}
+  .run{position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:#3a4456;opacity:0;}
   .sep{width:1px;height:46px;background:rgba(27,36,48,.10);margin:0 3px 4px;}
   .cursor{position:absolute;width:22px;height:22px;}
-  .cursor svg{display:block}
 </style></head>
 <body>
   <div class="stage">
@@ -32,53 +31,76 @@
       <div class="slot ph"></div>
       <div class="slot ph"></div>
       <div class="sep"></div>
-      <div class="slot app" id="appicon"><img src="file:///tmp/hero-assets/icon.png" alt=""><span class="run"></span></div>
+      <div class="slot app" id="appicon"><img src="file:///tmp/hero-assets/icon.png" alt=""><span class="run" id="rundot"></span></div>
       <div class="sep"></div>
       <div class="slot ph"></div>
     </div>
     <div class="cursor" id="cursor"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M3 2l7 18 2.5-7L19 10z" fill="#1b2430" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
   </div>
 <script>
-  const p = new URLSearchParams(location.search);
-  const f = +p.get('f')||0, n = +p.get('n')||54;
-  const x = f/n;                                  // 0..1 normalized time
+  const p=new URLSearchParams(location.search);
+  const f=+p.get('f')||0, n=+p.get('n')||90;
+  const x=f/n;
   const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
-  const sm=v=>{v=cl(v,0,1);return v*v*(3-2*v);};  // smoothstep
-  const seg=(a,b)=>sm((x-a)/(b-a));               // eased ramp across [a,b]
+  const sm=v=>{v=cl(v,0,1);return v*v*(3-2*v);};
+  const seg=(a,b)=>sm((x-a)/(b-a));
 
-  // window presence: in over [.24,.46], out over [.74,.90]
-  const present = seg(.24,.46)*(1-seg(.74,.90));
+  // window: in over [.18,.36], hold, out over [.80,.92] -> long dwell in between
+  const present=seg(.18,.36)*(1-seg(.80,.92));
   const win=document.getElementById('win');
-  const scale=0.92+0.08*present;
-  const ty=(1-present)*18;
   win.style.opacity=present.toFixed(3);
-  win.style.transform=`translateX(-50%) translateY(${ty.toFixed(1)}px) scale(${scale.toFixed(3)})`;
+  win.style.transform=`translateX(-50%) translateY(${((1-present)*18).toFixed(1)}px) scale(${(0.92+0.08*present).toFixed(3)})`;
 
-  // icon launch bounce over [.13,.40] (two damped hops)
-  let by=0, isc=1;
-  if(x>=.13 && x<=.42){const u=(x-.13)/.29; by=-Math.abs(Math.sin(u*Math.PI*2))*16*(1-u); }
-  if(x>=.10 && x<=.16){ isc=0.9+0.1*((x-.10)/.06); }   // quick press-in on click
-  const ic=document.getElementById('appicon');
-  ic.style.transform=`translateY(${by.toFixed(1)}px) scale(${isc.toFixed(3)})`;
+  // measure dock geometry BEFORE applying any transforms
+  const slots=[...document.querySelectorAll('.slot')];
+  const appIcon=document.getElementById('appicon');
+  const centers=slots.map(s=>{const r=s.getBoundingClientRect();return r.left+r.width/2;});
+  const appR=appIcon.getBoundingClientRect();
+  const fjordX=appR.left+appR.width/2, fjordTop=appR.top;
 
-  // cursor: glides to icon, taps around x=.12, fades once window is up
+  // cursor sweeps in from upper-right to the icon, arriving ~.17, then a click dip
+  const startX=905,startY=305;
+  const arrive=sm(cl(x/.17,0,1));
+  let cx=startX+(fjordX-startX)*arrive;
+  let cy=startY+((fjordTop-10)-startY)*arrive;
+  const press=(x>=.17&&x<=.225)?Math.sin((x-.17)/.055*Math.PI):0;
+  cy+=press*6;
+
+  // dock magnification: gaussian by distance to cursor, gated by a hover factor
+  const hover=(1-seg(.28,.40));   // active on approach, relaxes once the window takes over
+  const sigma=66;
+  slots.forEach((s,i)=>{
+    if(s===appIcon) return;
+    const d=centers[i]-cx;
+    const lift=0.5*Math.exp(-(d*d)/(2*sigma*sigma))*hover;
+    s.style.transformOrigin='50% 100%';
+    s.style.transform=`translateY(${(-lift*9).toFixed(1)}px) scale(${(1+lift).toFixed(3)})`;
+  });
+
+  // app icon: magnification + launch bounce + click press, combined
+  let by=0;
+  if(x>=.16&&x<=.40){const u=(x-.16)/.24; by=-Math.abs(Math.sin(u*Math.PI*2))*15*(1-u);}
+  const dApp=fjordX-cx;
+  const liftApp=0.5*Math.exp(-(dApp*dApp)/(2*sigma*sigma))*hover;
+  const pressScale=(x>=.17&&x<=.225)?(1-0.08*Math.sin((x-.17)/.055*Math.PI)):1;
+  appIcon.style.transformOrigin='50% 100%';
+  appIcon.style.transform=`translateY(${(by-liftApp*9).toFixed(1)}px) scale(${((1+liftApp)*pressScale).toFixed(3)})`;
+
+  // running dot: appears only once the window is open, gone when it closes
+  const dotOn=seg(.36,.46)*(1-seg(.82,.90));
+  document.getElementById('rundot').style.opacity=cl(dotOn,0,1).toFixed(2);
+
+  // cursor fades as the window settles
   const cur=document.getElementById('cursor');
-  const startX=640,startY=470, dockIconX=556, dockIconY=512; // approx icon center
-  const glide=sm(cl(x/ .12,0,1));
-  let cx=startX+(dockIconX-startX)*glide;
-  let cy=startY+(dockIconY-startY)*glide + by*0.6;
-  const curOp = (1-seg(.20,.34));                 // fade cursor as window appears
   cur.style.left=cx+'px'; cur.style.top=cy+'px';
-  cur.style.opacity=cl(curOp,0,1).toFixed(2);
+  cur.style.opacity=cl(1-seg(.30,.40),0,1).toFixed(2);
 
-  // caption text by beat
+  // captions by beat
   const cap=document.getElementById('cap');
-  let html='';
-  if(x<.22) html='double-click the Dock icon';
-  else if(x<.70) html='a native window — your icon, your app';
-  else html='<span class="k">⌘</span><span class="k">Q</span>&nbsp; quits and frees the port';
-  cap.innerHTML=html;
-  const capOp = Math.min(seg(.02,.10)*(1-seg(.18,.22))+seg(.24,.30)*(1-seg(.66,.70))+seg(.72,.78), 1);
-  cap.style.opacity = (x<.22? (1-seg(.18,.22)) : x<.70 ? seg(.24,.30)*(1-seg(.66,.70)) : seg(.72,.78)).toFixed(2);
+  let html, op;
+  if(x<.20){ html='double-click the Dock icon'; op=1-seg(.16,.20); }
+  else if(x<.65){ html='a native window — your icon, your app'; op=seg(.40,.48)*(1-seg(.61,.65)); }
+  else { html='<span class="k">⌘</span><span class="k">Q</span>&nbsp; quits and frees the port'; op=seg(.66,.72)*(1-seg(.88,.92)); }
+  cap.innerHTML=html; cap.style.opacity=cl(op,0,1).toFixed(2);
 </script>
 </body></html>

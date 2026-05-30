@@ -9,7 +9,7 @@ The visual system for `app-it`. One brand color, a calm low-contrast palette, re
 | `screenshots/01-hero.png` | README hero — a real app-it build on a brand canvas | 2000×1125 |
 | `screenshots/02-native-window.png` | The same window, clean, for reuse | 1600×1071 |
 | `social/social-preview.png` | GitHub social preview poster | 2560×1280 (2:1) |
-| `motion/app-it-lifecycle.gif` | Looping lifecycle: launch → window → ⌘Q | 1040×585 |
+| `motion/app-it-lifecycle.gif` | Looping lifecycle: launch → window → ⌘Q | 920×518 |
 
 ## Brand
 
