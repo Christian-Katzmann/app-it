@@ -45,6 +45,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- UseWindowsForms adds System.Windows.Forms and System.Drawing as implicit
+         global usings, which collide with WPF's System.Windows (e.g. Application,
+         MessageBox resolve ambiguously — CS0104). This host is WPF-first and
+         touches WinForms only for the tray NotifyIcon, always through the
+         explicit `Forms.` / `Drawing.` aliases in MainWindow.xaml.cs — so drop
+         the two implicit globals and keep the WPF names unambiguous. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Evergreen Chromium runtime binding. Pinned for a reproducible CI build;
          a maintainer can bump it freely — the API surface used here is stable. -->
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2592.51" />
