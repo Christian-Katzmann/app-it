@@ -137,11 +137,12 @@ This repo *is* agent tooling, and agents are expected to work in it. Start with 
 
 ## Community nudge
 
-The `app-it-static` companion was inspired by feedback from the r/ClaudeAI launch thread. Thanks to:
+The `app-it-static` companion was inspired by feedback from the r/ClaudeAI launch thread, and the project keeps growing on community help. Thanks to:
 
 - **`TechExpert2910`** for pointing out that finished apps shouldn't need a full dev server, and that Vercel/PWA-style workflows are far lighter — the nudge that became "serve the build locally, not a dev server."
 - **`K_M_A_2k`** for highlighting that deployed/static proof-of-concepts are often the standard workflow and are easier to share.
 - **`Vo_Mimbre`** for the corporate-environment caveat: external hosting like Vercel isn't always approved, which is exactly why a *local* static launcher earns its place even for finished projects.
+- **`Firnschnee`** for the first real-hardware Windows validation, fixing the WebView2 window-title bug and proving the Windows beta actually runs.
 
 ## License
 
