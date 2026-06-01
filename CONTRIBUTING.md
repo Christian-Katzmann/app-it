@@ -28,10 +28,4 @@ If your change updates user-visible behavior, add a short note to `CHANGELOG.md`
 
 ## Recognition
 
-Contributors are credited in the README via the [all-contributors](https://allcontributors.org) spec — and not just for code. Testing on real hardware, packaging, bug reports, and ideas all earn a spot. To add yourself (or someone else) after a merged contribution, comment on any issue or PR:
-
-```text
-@all-contributors please add @username for code, test, ideas
-```
-
-The bot opens a follow-up PR with the README update; a maintainer reviews it like any other change.
+Contributors show up in GitHub's own contributors list — and not just for code. Testing on real hardware, packaging, bug reports, and ideas all earn a mention in the README's community thanks. If a contribution doesn't already credit you, say so in your PR (or open an issue) and the maintainer will add you.

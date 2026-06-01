@@ -144,30 +144,6 @@ The `app-it-static` companion was inspired by feedback from the r/ClaudeAI launc
 - **`Vo_Mimbre`** for the corporate-environment caveat: external hosting like Vercel isn't always approved, which is exactly why a *local* static launcher earns its place even for finished projects.
 - **`Firnschnee`** for the first real-hardware Windows validation, fixing the WebView2 window-title bug and proving the Windows beta actually runs.
 
-## Contributors
-
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/github/all-contributors/Christian-Katzmann/app-it?color=ee8449&style=flat-square)](#contributors)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
-
-`app-it` is built by more than its author. This list follows the [all-contributors](https://allcontributors.org) spec — code, real-hardware testing, packaging, and ideas all count, not just commits ([emoji key](https://github.com/all-contributors/all-contributors-cli#emoji-key-)).
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Firnschnee"><img src="https://avatars.githubusercontent.com/u/99618191?v=4?s=100" width="100px;" alt="Firnschnee"/><br /><sub><b>Firnschnee</b></sub></a><br /><a href="https://github.com/Christian-Katzmann/app-it/commits?author=Firnschnee" title="Code">💻</a> <a href="https://github.com/Christian-Katzmann/app-it/commits?author=Firnschnee" title="Tests">⚠️</a> <a href="#platform-Firnschnee" title="Packaging/porting to new platform">📦</a> <a href="#ideas-Firnschnee" title="Ideas, Planning, & Feedback">🤔</a></td>
-    </tr>
-  </tbody>
-</table>
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
-
 ## License
 
 MIT — see [LICENSE](LICENSE).
