@@ -25,8 +25,15 @@ APP_NAME="__APP_NAME__"
 APP_SLUG="__APP_SLUG__"
 PROJECT_ROOT="__PROJECT_ROOT__"
 PREFERRED_PORT=__PORT__
-START_COMMAND="__START_COMMAND__"
 POLYFILL_PATH="__POLYFILL_PATH__"
+
+# Keep `$PORT` and other shell syntax literal until the daemon spawn below.
+# A plain double-quoted assignment here would expand `$PORT` before the
+# launcher has selected its runtime port, breaking Vite/SvelteKit recipes.
+START_COMMAND="$(cat <<'APP_IT_START_COMMAND'
+__START_COMMAND__
+APP_IT_START_COMMAND
+)"
 
 STATE_DIR="$HOME/Library/Application Support/app-it/$APP_SLUG"
 LOG_DIR="$HOME/Library/Logs/app-it/$APP_SLUG"

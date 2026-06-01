@@ -27,9 +27,9 @@ Turn a local web project into a macOS Dock-launchable `.app` bundle — a native
   WHAT YOU HAVE               WHAT APP-IT DOES           WHAT YOU GET
   ───────────────────────     ──────────────────────     ───────────────────────────
   a local web project         inspects it from disk,     YourApp.app on your Dock
-  Vite, Next, or a static     picks a strategy, then     · its own icon
-  site, run with          ──▶ builds & signs a .app  ──▶ · native window, one click
-  `npm run dev` in a tab      around a WebKit shell      · ⌘Q quits & frees the port
+  Vite React, SvelteKit,      picks a strategy, then     · its own icon
+  Astro, Next, or static  ──▶ builds & signs a .app  ──▶ · native window, one click
+  sites (`npm run dev`)       around a WebKit shell      · ⌘Q quits & frees the port
 ```
 
 Under the hood, app-it:

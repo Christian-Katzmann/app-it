@@ -38,6 +38,8 @@ import WebKit
 
 private let DEFAULT_WIDTH: CGFloat = 1280
 private let DEFAULT_HEIGHT: CGFloat = 820
+private let MIN_WIDTH: CGFloat = 720
+private let MIN_HEIGHT: CGFloat = 480
 
 final class AppDelegate: NSObject,
     NSApplicationDelegate,
@@ -84,6 +86,7 @@ final class AppDelegate: NSObject,
         installKeyboardShortcutMonitor()
 
         let frame = NSRect(x: 0, y: 0, width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT)
+        let autosaveName = "App-itWindow.\(appName)"
 
         window = NSWindow(
             contentRect: frame,
@@ -92,10 +95,11 @@ final class AppDelegate: NSObject,
             defer: false
         )
         window.title = appName
-        window.setFrameAutosaveName("App-itWindow.\(appName)")
+        window.setFrameAutosaveName(autosaveName)
+        window.minSize = NSSize(width: MIN_WIDTH, height: MIN_HEIGHT)
         window.tabbingMode = .disallowed
         window.delegate = self
-        window.center()
+        restoreUsableWindowFrame(named: autosaveName)
 
         let config = WKWebViewConfiguration()
         config.websiteDataStore = .default()
@@ -137,6 +141,45 @@ final class AppDelegate: NSObject,
         webView.load(URLRequest(url: url))
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private func restoreUsableWindowFrame(named autosaveName: String) {
+        // AppKit can restore a frame saved on a now-disconnected display, or a
+        // tiny frame saved before the WebKit shell had a minimum size. Clamp
+        // the restored frame into a visible screen before the first paint so
+        // the WKWebView opens usable instead of off-screen or postage-stamp.
+        if !window.setFrameUsingName(autosaveName) {
+            window.center()
+        }
+
+        guard let screen = bestScreen(for: window.frame) else { return }
+        var frame = window.frame
+        let visible = screen.visibleFrame
+
+        frame.size.width = min(max(frame.size.width, MIN_WIDTH), visible.width)
+        frame.size.height = min(max(frame.size.height, MIN_HEIGHT), visible.height)
+
+        if frame.maxX > visible.maxX {
+            frame.origin.x = visible.maxX - frame.size.width
+        }
+        if frame.minX < visible.minX {
+            frame.origin.x = visible.minX
+        }
+        if frame.maxY > visible.maxY {
+            frame.origin.y = visible.maxY - frame.size.height
+        }
+        if frame.minY < visible.minY {
+            frame.origin.y = visible.minY
+        }
+
+        window.setFrame(frame, display: false)
+    }
+
+    private func bestScreen(for frame: NSRect) -> NSScreen? {
+        let visibleScreens = NSScreen.screens
+        return visibleScreens.first(where: { $0.visibleFrame.intersects(frame) })
+            ?? NSScreen.main
+            ?? visibleScreens.first
     }
 
     private var hasSynthesizedGesture = false

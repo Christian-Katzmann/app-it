@@ -34,10 +34,20 @@ APP_NAME="__APP_NAME__"
 APP_SLUG="__APP_SLUG__"
 PROJECT_ROOT="__PROJECT_ROOT__"
 PREFERRED_FE_PORT=__PORT__
-START_COMMAND="__START_COMMAND__"
 PREFERRED_BE_PORT=__BACKEND_PORT__
-BACKEND_START_COMMAND="__BACKEND_START_COMMAND__"
 POLYFILL_PATH="__POLYFILL_PATH__"
+
+# Keep `$PORT` / `$API_PORT` and other shell syntax literal until the daemon
+# spawns below. A plain double-quoted assignment here would expand those values
+# before the launcher has selected its runtime ports.
+START_COMMAND="$(cat <<'APP_IT_START_COMMAND'
+__START_COMMAND__
+APP_IT_START_COMMAND
+)"
+BACKEND_START_COMMAND="$(cat <<'APP_IT_BACKEND_START_COMMAND'
+__BACKEND_START_COMMAND__
+APP_IT_BACKEND_START_COMMAND
+)"
 
 STATE_DIR="$HOME/Library/Application Support/app-it/$APP_SLUG"
 LOG_DIR="$HOME/Library/Logs/app-it/$APP_SLUG"

@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- Added: explicit `app-it` dev-server recipes for Vite + React, SvelteKit, and Astro, including disk detection signals, port behavior, and loopback-only start commands.
+- Fixed: generated run scripts now preserve `$PORT`/`$API_PORT` inside configured start commands until the launcher has selected the runtime ports.
+- Changed: hardened the shared Swift `WKWebView` shell against unusable restored window frames by clamping saved frames to the visible display and enforcing a minimum first-launch size.
 - Added: `app-it-static` companion plugin (`plugins/app-it-static/`) — a macOS sibling of `app-it` for **finished or buildable** apps. Builds once, then serves the built output (`dist/`/`build/`/`out/`/…) from a tiny zero-dependency static server (~15 MB) or directly via `file://` (~0 MB) — **no dev server**, instead of the 300–700 MB a dev server holds. Reuses `app-it`'s native Swift WebKit window, icon pipeline, and one-folder Dock install (the five shared templates are byte-identical and CI guards them against drift). The served output is a snapshot; `desktop:rebuild` refreshes it. Inspired by r/ClaudeAI launch feedback (see README → Community nudge) and recorded in [ADR 0006](docs/decisions/0006-static-companion-snapshot-model.md).
 - Added: Windows beta scaffold (`plugins/app-it-windows/`) — a sibling plugin mirroring the macOS contract with Windows primitives (WPF + WebView2 host, PowerShell lifecycle scripts, multi-resolution `.ico`, Start Menu `.lnk`). Build + lint gated by a required `windows-latest` CI job; **untested on real hardware, looking for a maintainer.** See [docs/WINDOWS.md](docs/WINDOWS.md).
 

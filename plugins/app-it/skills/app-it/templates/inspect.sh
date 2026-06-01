@@ -40,7 +40,7 @@ if [ -d "$ROOT/.git" ] || [ -f "$ROOT/.git" ]; then
 fi
 
 print_section "Project type signals (verify from disk, ignore CLAUDE.md)"
-for f in package.json next.config.ts next.config.js next.config.mjs vite.config.ts vite.config.js vite.config.mjs tauri.conf.json electron.json electron-builder.yml electron-builder.json pyproject.toml requirements.txt Cargo.toml Gemfile manifest.json index.html; do
+for f in package.json next.config.ts next.config.js next.config.mjs vite.config.ts vite.config.js vite.config.mjs astro.config.ts astro.config.js astro.config.mjs svelte.config.ts svelte.config.js svelte.config.mjs tauri.conf.json electron.json electron-builder.yml electron-builder.json pyproject.toml requirements.txt Cargo.toml Gemfile manifest.json index.html; do
     [ -f "$ROOT/$f" ] && echo "  $f" || true
 done
 [ -d "$ROOT/src-tauri" ] && echo "  src-tauri/ (Tauri project)" || true
@@ -76,6 +76,35 @@ for k, v in matched:
 print()
 print(f"  package.json name:        {pkg.get('name', '(none)')}")
 print(f"  package.json displayName: {pkg.get('displayName', '(none)')}")
+
+deps = {}
+for section in ("dependencies", "devDependencies", "optionalDependencies"):
+    deps.update(pkg.get(section, {}))
+
+def has(name):
+    return name in deps
+
+recipes = []
+if has("vite") and has("react") and has("react-dom") and (
+    has("@vitejs/plugin-react") or has("@vitejs/plugin-react-swc")
+):
+    recipes.append(
+        "Vite + React — port 5173; start_command '<pm> run dev -- --host 127.0.0.1 --port $PORT --strictPort'"
+    )
+if has("@sveltejs/kit") and has("@sveltejs/vite-plugin-svelte") and has("svelte") and has("vite"):
+    recipes.append(
+        "SvelteKit — port 5173; start_command '<pm> run dev -- --host 127.0.0.1 --port $PORT --strictPort'"
+    )
+if has("astro"):
+    recipes.append(
+        "Astro — port 4321; start_command '<pm> run dev -- --host 127.0.0.1 --port $PORT'"
+    )
+
+if recipes:
+    print()
+    print("  framework recipe candidates:")
+    for recipe in recipes:
+        print(f"    - {recipe}")
 PY
 fi
 
@@ -85,7 +114,7 @@ if [ -f "$ROOT/vite.config.ts" ] || [ -f "$ROOT/vite.config.js" ] || [ -f "$ROOT
         [ -f "$cfg" ] || continue
         if grep -nE 'server:\s*\{[^}]*port:\s*[0-9]+' "$cfg" 2>/dev/null | head -3; then
             echo "  → vite.config.ts has hardcoded server.port literal."
-            echo "    Vanilla single-server: pass --port via START_COMMAND ('npm run dev -- --port \$PORT')."
+            echo "    Vanilla single-server: pass CLI flags via START_COMMAND ('npm run dev -- --host 127.0.0.1 --port \$PORT --strictPort')."
             echo "    Multi-server / proxy: edit vite.config.ts — see SKILL.md A3.2 carve-out."
         fi
         if grep -nE 'proxy:\s*\{[^}]*target:\s*["'"'"']http://localhost:[0-9]+' "$cfg" 2>/dev/null | head -3; then

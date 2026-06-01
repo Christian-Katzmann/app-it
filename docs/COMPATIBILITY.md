@@ -9,7 +9,7 @@
 | OS | macOS |
 | Primary shell | Swift `WKWebView` wrapper |
 | Fallback shell | Chrome `--app` mode |
-| Common targets | Vite, Next.js, static sites, local multi-server apps |
+| Common targets | Vite + React, SvelteKit, Astro, Next.js, static sites, local multi-server apps |
 | Install destination | `~/Applications/App It/` by default |
 | Signing | Ad-hoc local code signing only |
 

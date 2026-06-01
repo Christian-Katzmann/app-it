@@ -186,6 +186,18 @@ For A3 multi-server, add `"backend_port"` and `"backend_start_command"`. The bui
 
 Edits should be minimal and additive (env-var reads with sensible defaults), so existing developer workflows (`npm run dev` from terminal without env vars set) keep working unchanged.
 
+### Framework dev recipes
+
+Use these when disk signals are unambiguous. Examples use `npm`; translate to
+the package manager actually present in the project while preserving the same
+script arguments.
+
+| Framework | Reliable detection signals | Preferred port | `START_COMMAND` | Notes |
+|---|---|---:|---|---|
+| Vite + React | `vite.config.*`; `package.json` has `vite`, `react`, `react-dom`, and `@vitejs/plugin-react` or `@vitejs/plugin-react-swc`; fresh apps usually have `src/main.jsx` or `src/main.tsx` | 5173 | `npm run dev -- --host 127.0.0.1 --port "$PORT" --strictPort` | Vanilla single-server path. The CLI flags beat `vite.config.*` port literals without source edits. If a proxy target or backend port is hardcoded, route to A3.2 and make the ports env-driven. |
+| SvelteKit | `svelte.config.*`; `package.json` has `@sveltejs/kit`, `@sveltejs/vite-plugin-svelte`, `svelte`, and `vite` | 5173 | `npm run dev -- --host 127.0.0.1 --port "$PORT" --strictPort` | SvelteKit runs through Vite, so use Vite CLI port flags instead of relying on `PORT` alone. First launch must happen after dependencies are installed. |
+| Astro | `astro.config.*`; `package.json` has `astro`; `scripts.dev` is usually `astro dev` | 4321 | `npm run dev -- --host 127.0.0.1 --port "$PORT"` | Astro's dev server accepts `--port`, and the explicit flag works across current Astro releases. Keep the host loopback-only; do not use `--host 0.0.0.0`. |
+
 Never:
 - Modify app business-logic source code.
 - Add runtime dependencies for Strategy A.
@@ -507,13 +519,13 @@ Hard-won from real-project iteration. Do not rediscover these:
 | Framework | Default behavior | What `START_COMMAND` should do |
 |---|---|---|
 | Next.js (`next dev`) | reads `PORT` env, exits if busy | nothing — works out of the box. **But** check `package.json` `"dev"` for hardcoded `-p N`; if present, replace with `pnpm exec next dev` (or add `dev:app-it`). |
-| Vite (vanilla, no proxy) | reads config's `server.port` literal; `strictPort: false` silently bumps | `npm run dev -- --port "$PORT"` — CLI flag wins over config literal. No source edits. |
+| Vite + React / vanilla Vite (no proxy) | reads config's `server.port` literal; `strictPort: false` silently bumps | `npm run dev -- --host 127.0.0.1 --port "$PORT" --strictPort` — CLI flags win over config literals. No source edits. |
 | Vite (cohabiting w/ proxy) | as above, plus proxy target hardcoded | edit `vite.config.ts`: `server.port` reads `process.env.PORT`; `strictPort: true`; `server.proxy.<route>.target` reads `process.env.API_PORT`. |
+| SvelteKit | Vite-backed; `PORT` alone is not the reliable contract | `npm run dev -- --host 127.0.0.1 --port "$PORT" --strictPort`. |
 | Express (typical) | `process.env.PORT \|\| 3001` | none — works. For cohabiting, rename to `API_PORT` in the entrypoint. |
 | Flask | reads `PORT`/`FLASK_RUN_PORT` env | none. |
 | CRA (`react-scripts start`) | reads `PORT` env | none. |
-| Astro 4+ | reads `PORT` env | none. |
-| Astro 3 | needs `--port` flag | embed `--port "$PORT"` in `START_COMMAND`. |
+| Astro | current releases accept `--port`; older Astro needed the flag | `npm run dev -- --host 127.0.0.1 --port "$PORT"`. |
 | Docusaurus | needs `--port` flag | embed `--port "$PORT"`. |
 
 **Recommended PORT-respecting invocations per package manager:**
@@ -666,9 +678,12 @@ Replace `assets/<slug>-icon.png`, then `pnpm desktop:icons:<app> && pnpm desktop
 | Signal | Strategy | Notes |
 |---|---|---|
 | `next.config.*`, dev on `:3000` | A1 native | Check `dev` script for `-p N` literal; bypass via `pnpm exec next dev` if found. |
+| `vite.config.*` + React deps (`react`, `react-dom`, `@vitejs/plugin-react*`) | A1 native | Vite + React recipe: `START_COMMAND="npm run dev -- --host 127.0.0.1 --port \"\$PORT\" --strictPort"`. |
 | `vite.config.*` + existing `dist/` | A2 | Static — `file://` URL, no server. |
-| `vite.config.*` no build (vanilla) | A1 native | `START_COMMAND="npm run dev -- --port \$PORT"` — CLI flag wins over config literal. |
+| `vite.config.*` no build (vanilla) | A1 native | `START_COMMAND="npm run dev -- --host 127.0.0.1 --port \"\$PORT\" --strictPort"` — CLI flags win over config literals. |
 | `vite.config.*` + proxy block | A3.2 | Make ports env-driven (3 vite-config edits + 1 server-entry edit). |
+| `svelte.config.*` + `@sveltejs/kit` | A1 native | SvelteKit recipe: Vite-backed dev server, use `--port "$PORT" --strictPort`; do not treat adapter choice as static unless using app-it-static. |
+| `astro.config.*` + `astro` dependency | A1 native | Astro recipe: default preferred port 4321, `START_COMMAND="npm run dev -- --host 127.0.0.1 --port \"\$PORT\""`. |
 | `concurrently` / `npm-run-all -p` / `turbo run dev` in `dev` | A3.1 | Reuse orchestrator as single START_COMMAND. |
 | `apps/web` + `apps/api` (cohabiting, no orchestrator) | A3.2 | Multi-server template. |
 | `apps/web` + `apps/studio` (separate) | A1 native × 2 | Two `.app`s. |
