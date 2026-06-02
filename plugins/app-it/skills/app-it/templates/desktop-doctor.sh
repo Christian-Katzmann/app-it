@@ -165,10 +165,17 @@ LAUNCHER_PATH="$HOME/.bun/bin:$HOME/.deno/bin:$HOME/.volta/bin:$HOME/.local/shar
 # space-separated. Mirrors run-template.sh's reattach gate so "does the running
 # server belong to this launcher" uses the SAME ownership test the launcher does.
 walk_descendants() {
-    local root="$1" current="$1" tree="$1" gen
+    local root="$1" current="$1" tree="$1" gen _pid
     for _ in 1 2 3 4; do
-        gen="$(pgrep -P "$current" 2>/dev/null | tr '\n' ' ')"
-        [ -z "$gen" ] && break
+        # One PID per pgrep call: macOS `pgrep -P` returns nothing for a
+        # space-joined / trailing-space argument, so a multi-PID generation
+        # would halt the walk and miss deeper listeners (pnpm → node →
+        # next-server, npm → node-vite). Walk per-pid so each call is clean.
+        gen=""
+        for _pid in $current; do
+            gen="$gen $(pgrep -P "$_pid" 2>/dev/null | tr '\n' ' ')"
+        done
+        [ -z "${gen// /}" ] && break
         tree="$tree $gen"; current="$gen"
     done
     printf '%s' "$tree"

@@ -1,0 +1,16 @@
+{
+  "_comment": "Build-assert fixture (no runtime run). start_command honors the PORT env (Next-style); the suite only proves the bundle assembles for a Next-shaped project. Single-server runtime is covered by vite-basic.",
+  "apps": [
+    {
+      "name": "Next Basic",
+      "slug": "next-basic",
+      "port": 41040,
+      "start_command": "node stub-server.js",
+      "bundle_id": "com.user.next-basic",
+      "version": "0.1.0",
+      "polyfill_path": "",
+      "backend_port": null,
+      "backend_start_command": null
+    }
+  ]
+}

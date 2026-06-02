@@ -3,6 +3,9 @@ name: CI
 on:
   push:
   pull_request:
+  schedule:
+    - cron: "17 4 * * 1" # weekly (Mon 04:17 UTC) — real-framework drift check
+  workflow_dispatch:
 
 # Least privilege: validate.sh only reads the tree.
 permissions:
@@ -16,6 +19,23 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: Validate plugin
         run: ./scripts/validate.sh
+      # Behavioral gate: drive the real scripts against tiny fixtures (build,
+      # bundle metadata, runtime port, server ownership, teardown). Hermetic —
+      # stand-in $PORT servers, no installs. Real frameworks run in fixtures-real.
+      - name: Behavioral fixture suite
+        run: ./scripts/test-fixtures.sh
+
+  # Real-framework drift lane: npm install + the real `npm run dev -- --port $PORT`
+  # Vite invocation, launched through a real bundle. Heavy and network-bound, so it
+  # runs weekly / on demand only — never gating per-PR. The hermetic stub-based
+  # suite in the `validate` job is what gates every push.
+  fixtures-real:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - name: Real-framework fixture lane (vite-real)
+        run: APP_IT_RUN_REAL=1 ./scripts/test-fixtures.sh
 
   # Required: this job gates merge so a maintainer PR cannot accidentally regress
   # the Windows scaffold. The macos-latest job validates the macOS plugin; this

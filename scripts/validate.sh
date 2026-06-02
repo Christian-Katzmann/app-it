@@ -114,10 +114,20 @@ else
 fi
 
 for file in install.sh \
+  scripts/test-fixtures.sh \
   plugins/app-it/skills/app-it/templates/*.sh \
   plugins/app-it-static/skills/app-it-static/templates/*.sh; do
   bash -n "$file"
 done
+
+# Fixture-suite stand-in servers (JS) — syntax-check when node is available.
+if command -v node >/dev/null 2>&1; then
+  for js in scripts/lib/*.js; do
+    node --check "$js"
+  done
+else
+  echo "note: node not found; skipping scripts/lib/*.js syntax check"
+fi
 
 # Python static server (app-it-static): syntax-check, then clean the bytecode
 # cache py_compile leaves behind so it never shows up as an untracked artifact.
@@ -180,4 +190,8 @@ grep -qx 'name: app-it-windows' plugins/app-it-windows/skills/app-it-windows/SKI
 echo ""
 echo "Windows plugin present (beta) — validated in CI, not on macOS — see docs/WINDOWS.md"
 
-echo "app-it validation passed"
+# This script is the fast, static gate. The behavioral gate — which drives the
+# real launcher scripts against tiny project fixtures (build, runtime port,
+# server ownership, teardown) — is scripts/test-fixtures.sh (run by CI; run it
+# locally for launcher/recipe changes).
+echo "app-it validation passed (behavioral suite: ./scripts/test-fixtures.sh)"

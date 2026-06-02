@@ -1,0 +1,15 @@
+{
+  "_comment": "app-it-static schema. serve_mode 'server' uses the bundled stdlib static-server.py (zero install) to serve the prebuilt out/ — a genuine end-to-end of the static launch path.",
+  "apps": [
+    {
+      "name": "Static Export",
+      "slug": "static-export",
+      "serve_mode": "server",
+      "static_dir": "out",
+      "port": 41030,
+      "bundle_id": "com.user.static-export",
+      "version": "0.1.0",
+      "build_command": "next build"
+    }
+  ]
+}
