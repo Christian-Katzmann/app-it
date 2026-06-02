@@ -31,6 +31,13 @@ public partial class MainWindow : Window
     private bool _quitting;
     private bool _trayHintShown;
 
+    // Microsoft's canonical WebView2 download page (the "Evergreen Standalone"
+    // installer). Windows LTSC/Server and some clean installs ship without the
+    // runtime; this is where an end user gets it. Locale-neutral — Microsoft
+    // redirects to the user's region.
+    private const string WebView2DownloadUrl =
+        "https://developer.microsoft.com/microsoft-edge/webview2/";
+
     public MainWindow(HostConfig config)
     {
         _config = config;
@@ -84,12 +91,29 @@ public partial class MainWindow : Window
 
             Web.CoreWebView2.Navigate(_config.Url!);
         }
+        catch (WebView2RuntimeNotFoundException)
+        {
+            // The Evergreen runtime is genuinely absent (common on Windows
+            // LTSC / Server, which ship without Edge). This is the one failure
+            // an end user can fix themselves, so offer to open the download
+            // page instead of leaving them at a dead window. Caught separately
+            // from the generic handler below so we only point at the installer
+            // when that is actually the problem.
+            var open = MessageBox.Show(
+                $"{_config.Title} needs the Microsoft Edge WebView2 runtime, " +
+                "which isn't installed on this PC.\n\n" +
+                "Click Yes to open the Microsoft download page. Install the " +
+                "\"Evergreen Standalone\" runtime, then relaunch.",
+                _config.Title, MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (open == MessageBoxResult.Yes) OpenInDefaultBrowser(WebView2DownloadUrl);
+        }
         catch (Exception ex)
         {
             MessageBox.Show(
                 "WebView2 failed to start.\n\n" + ex.Message + "\n\n" +
-                "The WebView2 Evergreen runtime may be missing on this machine — " +
-                "see docs/WINDOWS.md for the maintainer checklist.",
+                "If the Microsoft Edge WebView2 runtime is missing, install it from\n" +
+                WebView2DownloadUrl + "\nthen relaunch. See docs/WINDOWS.md for the " +
+                "maintainer checklist.",
                 _config.Title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
