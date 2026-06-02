@@ -118,9 +118,14 @@ descendant_holds_port() {
     local descendants="$supervisor"
     local current="$supervisor"
     for _ in 1 2 3 4; do
-        local next_gen
-        next_gen="$(pgrep -P "$current" 2>/dev/null | tr '\n' ' ')"
-        [ -z "$next_gen" ] && break
+        # One PID per pgrep call — macOS `pgrep -P` returns nothing for a
+        # space-joined argument, so a multi-PID generation would otherwise halt
+        # the walk and miss deeper listeners.
+        local next_gen="" _pid
+        for _pid in $current; do
+            next_gen="$next_gen $(pgrep -P "$_pid" 2>/dev/null | tr '\n' ' ')"
+        done
+        [ -z "${next_gen// /}" ] && break
         descendants="$descendants $next_gen"
         current="$next_gen"
     done
@@ -245,6 +250,17 @@ if [ -z "$CHOSEN_FE_PORT" ]; then
 fi
 
 URL="http://localhost:$CHOSEN_FE_PORT"
+
+# --- Headless smoke seam (CI / SSH / --check) --------------------------
+# Both servers are up, daemonized, and recorded (server.{pid,port} +
+# backend.{pid,port}); the frontend is reachable. With APP_IT_SMOKE set,
+# print the runtime URLs and exit 0 instead of opening the GUI window, so a
+# headless caller can probe both ports (curl, desktop:doctor) and stop them
+# (desktop:quit). Zero effect on a normal Dock launch (APP_IT_SMOKE unset).
+if [ -n "${APP_IT_SMOKE:-}" ]; then
+    echo "app-it smoke: $APP_NAME ready at $URL (fe pid $(cat "$PID_FILE" 2>/dev/null) :$CHOSEN_FE_PORT, be pid $(cat "$BACKEND_PID_FILE" 2>/dev/null) :$CHOSEN_BE_PORT)"
+    exit 0
+fi
 
 # --- Hand off to the native WebKit wrapper -----------------------------
 WRAPPER="$HERE/wrapper"

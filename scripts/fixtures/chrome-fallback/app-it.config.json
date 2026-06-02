@@ -1,0 +1,16 @@
+{
+  "_comment": "Built with APP_IT_LAUNCHER_MODE=chrome. The suite asserts the chrome launch path: run script uses Chrome --app= and the bundle carries NO Swift wrapper binary. Chrome is not opened headlessly — this is a build-shape assertion only.",
+  "apps": [
+    {
+      "name": "Chrome Fallback",
+      "slug": "chrome-fallback",
+      "port": 41050,
+      "start_command": "node stub-server.js --port \\$PORT",
+      "bundle_id": "com.user.chrome-fallback",
+      "version": "0.1.0",
+      "polyfill_path": "",
+      "backend_port": null,
+      "backend_start_command": null
+    }
+  ]
+}

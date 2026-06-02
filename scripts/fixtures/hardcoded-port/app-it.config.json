@@ -1,0 +1,16 @@
+{
+  "_comment": "Inspect-only fixture (not built). Its job is to prove inspect.sh keeps warning about hardcoded port literals — the most common reason an appified launcher silently ignores its chosen port. This config is not exercised by the suite.",
+  "apps": [
+    {
+      "name": "Hardcoded Port",
+      "slug": "hardcoded-port",
+      "port": 41070,
+      "start_command": "node stub-server.js --port \\$PORT",
+      "bundle_id": "com.user.hardcoded-port",
+      "version": "0.1.0",
+      "polyfill_path": "",
+      "backend_port": null,
+      "backend_start_command": null
+    }
+  ]
+}

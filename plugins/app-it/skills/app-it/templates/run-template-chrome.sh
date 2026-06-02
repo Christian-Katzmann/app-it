@@ -98,8 +98,16 @@ if [ -f "$PID_FILE" ] && [ -f "$PORT_FILE" ]; then
             DESCENDANTS="$EXPECTED_PID"
             CURRENT="$EXPECTED_PID"
             for _ in 1 2 3 4; do
-                NEXT_GEN="$(pgrep -P "$CURRENT" 2>/dev/null | tr '\n' ' ')"
-                [ -z "$NEXT_GEN" ] && break
+                # Expand one PID per pgrep call. macOS `pgrep -P` returns nothing
+                # for a space-joined / trailing-space argument, so passing the
+                # whole generation at once would silently halt the walk at the
+                # first level and miss deeper listeners (npm → node-vite,
+                # pnpm → node → next-server). Walk per-pid so each call is clean.
+                NEXT_GEN=""
+                for _pid in $CURRENT; do
+                    NEXT_GEN="$NEXT_GEN $(pgrep -P "$_pid" 2>/dev/null | tr '\n' ' ')"
+                done
+                [ -z "${NEXT_GEN// /}" ] && break
                 DESCENDANTS="$DESCENDANTS $NEXT_GEN"
                 CURRENT="$NEXT_GEN"
             done

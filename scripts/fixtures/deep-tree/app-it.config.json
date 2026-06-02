@@ -1,0 +1,16 @@
+{
+  "_comment": "Guards the descendant-walk fix. start_command launches stub-nested.js, which spawns stub-server.js as a child — so the HTTP listener sits at generation 2 (like real npm/pnpm dev). The suite asserts warm-reattach and desktop:doctor ownership both see it; a walk that stops at generation 1 (the macOS pgrep -P trap) would fail both.",
+  "apps": [
+    {
+      "name": "Deep Tree",
+      "slug": "deep-tree",
+      "port": 41080,
+      "start_command": "node stub-nested.js --port \\$PORT",
+      "bundle_id": "com.user.deep-tree",
+      "version": "0.1.0",
+      "polyfill_path": "",
+      "backend_port": null,
+      "backend_start_command": null
+    }
+  ]
+}

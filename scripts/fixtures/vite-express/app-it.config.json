@@ -1,0 +1,16 @@
+{
+  "_comment": "A3.2 multi-server. backend_port + backend_start_command make desktop-build.sh select run-template-multiserver.sh. Both commands use the stub (frontend via --port $PORT, backend via the API_PORT env) so the dual-port launch path runs without an install.",
+  "apps": [
+    {
+      "name": "Vite Express",
+      "slug": "vite-express",
+      "port": 41010,
+      "start_command": "node stub-server.js --port \\$PORT",
+      "bundle_id": "com.user.vite-express",
+      "version": "0.1.0",
+      "polyfill_path": "",
+      "backend_port": 41020,
+      "backend_start_command": "node stub-server.js"
+    }
+  ]
+}

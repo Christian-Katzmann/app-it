@@ -2,7 +2,9 @@
 
 Before publishing a release:
 
-- [ ] `./scripts/validate.sh` passes locally.
+- [ ] `./scripts/validate.sh` passes locally (fast static gate).
+- [ ] `./scripts/test-fixtures.sh` passes locally (hermetic behavioral suite).
+- [ ] `APP_IT_RUN_REAL=1 ./scripts/test-fixtures.sh` passes (real-Vite lane — confirms the current framework still launches end-to-end).
 - [ ] `claude plugin validate .` passes with the current Claude Code CLI.
 - [ ] `claude plugin validate plugins/app-it/.claude-plugin/plugin.json` passes with the current Claude Code CLI.
 - [ ] Codex install smoke passes in a temp home (both installable plugins):
@@ -16,7 +18,12 @@ Before publishing a release:
 - [ ] Shared templates are byte-identical across `app-it` and `app-it-static` (validate.sh's drift guard passes).
 - [ ] The README install command matches the intended GitHub repo.
 - [ ] No local paths, private notes, generated bundles, or test artifacts are tracked.
-- [ ] A real local project has been appified and opened from `~/Applications/App It/`.
+- [ ] **Manual GUI smoke** (the rows CI can't see — SKILL.md Phase-4 rows 12–16). The headless suite proves build → server → port → ownership → teardown; this proves the window actually works. Appify a real project (the `scripts/fixtures/vite-basic` shape is enough — `npm install` it first, or use any local app), install it, open it from `~/Applications/App It/`, and confirm by eye:
+  - the window shows the app (not an error page);
+  - the Dock icon is *ours* (not Chrome's / Safari's);
+  - Cmd+Q kills the app **and** its dev server (`lsof -ti tcp:<port>` is empty after);
+  - closing the window with the red X leaves the server warm (re-open is instant);
+  - the standard shortcuts respond (Cmd+R reload, Cmd+W close, zoom, fullscreen).
 
 For the first public GitHub setup:
 

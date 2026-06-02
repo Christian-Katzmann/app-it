@@ -21,10 +21,24 @@ Please avoid broadening the macOS plugin into general desktop-app distribution, 
 Before opening a PR:
 
 ```bash
-./scripts/validate.sh
+./scripts/validate.sh        # fast static gate (lint, syntax, plist, manifests)
+```
+
+For changes to the launcher scripts, the build pipeline, or framework support, also run the behavioral suite — it drives the real scripts against tiny project fixtures (build → runtime port → server ownership → teardown):
+
+```bash
+./scripts/test-fixtures.sh   # macOS; hermetic, no installs
 ```
 
 If your change updates user-visible behavior, add a short note to `CHANGELOG.md`.
+
+## Framework recipes need a fixture
+
+app-it claims to work across a set of project shapes (Vite, Next, static export, multi-server, …). A *recipe* is a claim; a *fixture* is the proof.
+
+**No new framework recipe is merged unless it's backed by a fixture in [`scripts/fixtures/`](scripts/fixtures/) or a reproducible smoke test.** This keeps the support matrix honest — every shape we say we handle has a test that fails when we stop handling it — and it keeps the repo from drifting into a zoo of untested example apps.
+
+Adding one is usually small: a tiny project-shape directory under `scripts/fixtures/<name>/` plus one section in `scripts/test-fixtures.sh`. See [scripts/fixtures/README.md](scripts/fixtures/README.md) for what each fixture must guard and what the suite deliberately does not prove. The open `good first issue` recipe tickets (Vite + React, SvelteKit, Astro) are good starting points — each should land with its fixture.
 
 ## Recognition
 

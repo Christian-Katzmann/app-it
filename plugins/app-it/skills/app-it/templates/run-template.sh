@@ -141,8 +141,16 @@ if [ -f "$PID_FILE" ] && [ -f "$PORT_FILE" ]; then
             DESCENDANTS="$EXPECTED_PID"
             CURRENT="$EXPECTED_PID"
             for _ in 1 2 3 4; do
-                NEXT_GEN="$(pgrep -P "$CURRENT" 2>/dev/null | tr '\n' ' ')"
-                [ -z "$NEXT_GEN" ] && break
+                # Expand one PID per pgrep call. macOS `pgrep -P` returns nothing
+                # for a space-joined / trailing-space argument, so passing the
+                # whole generation at once would silently halt the walk at the
+                # first level and miss deeper listeners (npm → node-vite,
+                # pnpm → node → next-server). Walk per-pid so each call is clean.
+                NEXT_GEN=""
+                for _pid in $CURRENT; do
+                    NEXT_GEN="$NEXT_GEN $(pgrep -P "$_pid" 2>/dev/null | tr '\n' ' ')"
+                done
+                [ -z "${NEXT_GEN// /}" ] && break
                 DESCENDANTS="$DESCENDANTS $NEXT_GEN"
                 CURRENT="$NEXT_GEN"
             done
@@ -242,6 +250,18 @@ if [ -z "$CHOSEN_PORT" ]; then
 fi
 
 URL="http://localhost:$CHOSEN_PORT"
+
+# --- Headless smoke seam (CI / SSH / --check) --------------------------
+# Everything a real Dock click does has now run EXCEPT opening the window:
+# the dev server is up, daemonized, reachable, and its pid/port are recorded.
+# With APP_IT_SMOKE set, print the runtime URL and exit 0 instead of handing
+# off to the GUI wrapper. The server stays warm so the caller can probe it
+# (curl, desktop:doctor) and then stop it (desktop:quit). Zero effect on a
+# normal Dock launch (APP_IT_SMOKE unset).
+if [ -n "${APP_IT_SMOKE:-}" ]; then
+    echo "app-it smoke: $APP_NAME ready at $URL (server pid $(cat "$PID_FILE" 2>/dev/null))"
+    exit 0
+fi
 
 # --- Hand off to the native WebKit wrapper -----------------------------
 # exec replaces this bash process with the Swift binary. The .app's identity

@@ -1,0 +1,16 @@
+{
+  "_comment": "Real-framework lane (runs only with APP_IT_RUN_REAL=1 / the scheduled fixtures-real CI job). npm install + the real `npm run dev -- --port $PORT` Vite invocation, launched through the real bundle. Catches Vite CLI/port drift that the hermetic stubs cannot.",
+  "apps": [
+    {
+      "name": "Vite Real",
+      "slug": "vite-real",
+      "port": 41060,
+      "start_command": "npm run dev -- --port \\$PORT",
+      "bundle_id": "com.user.vite-real",
+      "version": "0.1.0",
+      "polyfill_path": "",
+      "backend_port": null,
+      "backend_start_command": null
+    }
+  ]
+}

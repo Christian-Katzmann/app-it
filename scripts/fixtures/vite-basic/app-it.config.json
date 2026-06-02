@@ -1,0 +1,16 @@
+{
+  "_comment": "Fixture config. start_command is a $PORT-honoring stand-in (scripts/lib/stub-server.js, copied to the project root by test-fixtures.sh) — NOT real Vite. It mirrors Vite's CLI-port shape so the launcher's port handling is exercised without a node_modules install. Real Vite is the vite-real lane.",
+  "apps": [
+    {
+      "name": "Vite Basic",
+      "slug": "vite-basic",
+      "port": 41000,
+      "start_command": "node stub-server.js --port \\$PORT",
+      "bundle_id": "com.user.vite-basic",
+      "version": "0.1.0",
+      "polyfill_path": "",
+      "backend_port": null,
+      "backend_start_command": null
+    }
+  ]
+}
