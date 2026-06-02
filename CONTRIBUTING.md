@@ -25,3 +25,7 @@ Before opening a PR:
 ```
 
 If your change updates user-visible behavior, add a short note to `CHANGELOG.md`.
+
+## Recognition
+
+Contributors show up in GitHub's own contributors list — and not just for code. Testing on real hardware, packaging, bug reports, and ideas all earn a mention in the README's community thanks. If a contribution doesn't already credit you, say so in your PR (or open an issue) and the maintainer will add you.

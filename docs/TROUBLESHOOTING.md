@@ -1,5 +1,38 @@
 # Troubleshooting
 
+## Diagnose It First
+
+Before anything else, run the doctor on the affected launcher:
+
+```bash
+npm run desktop:doctor             # read-only health check for one app
+npm run desktop:doctor -- --tail   # …and show the tail of the launcher log
+```
+
+It inspects what app-it actually cares about — config, the installed `.app`,
+icon, bundle id, ad-hoc signature, quarantine, the preferred-vs-runtime port,
+stale processes, whether the running server really belongs to this launcher, the
+log paths, and whether the installed launcher predates the current templates —
+and prints a short report you can paste straight into a bug report. It is
+read-only and, when it can't be certain, it says "probably" rather than
+asserting.
+
+For multi-app projects it diagnoses one launcher at a time; it lists the apps and
+defaults to the first, or pass a slug: `npm run desktop:doctor -- <slug>`.
+
+To clean up app-it's **own** generated state — stale PID/port files, a stale
+LaunchServices registration, a rebuilt icon, or quarantine on the generated
+`.app`:
+
+```bash
+npm run desktop:doctor -- --fix-safe
+```
+
+`--fix-safe` only ever touches app-it's generated artifacts. It never modifies
+your product code, dependencies, framework config, or anything outside app-it's
+own output, and it never kills a running server — that is what `desktop:quit`
+is for.
+
 ## The App Will Not Open
 
 Run the target project's build again:

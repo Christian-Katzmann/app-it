@@ -8,7 +8,7 @@ Turn a local web project into a macOS Dock-launchable `.app` bundle — a native
 
 **Status** — Working, in daily use. The launcher templates are battle-tested across 12+ real projects; `v0.1.0` is the first standalone, marketplace-installable release. macOS only, by design.
 
-**Windows beta** — macOS is in daily use; Windows is scaffolded as an honest beta and looking for a maintainer. A complete sibling plugin (`plugins/app-it-windows/`), gated by a required `windows-latest` CI job (build · PowerShell lint · manifest parse · icon round-trip), mirrors the macOS contract with Windows primitives — but the author runs only macOS, so it has never been run on real Windows hardware. If you're on Windows and want to help finish it, the doorway is [docs/WINDOWS.md](docs/WINDOWS.md).
+**Windows beta** — macOS is in daily use; Windows is an early beta, now with its first real-hardware validation but still needing more. A complete sibling plugin (`plugins/app-it-windows/`), gated by a required `windows-latest` CI job (build · PowerShell lint · manifest parse · icon round-trip), mirrors the macOS contract with Windows primitives. The author runs only macOS, so for a long time it had never touched real Windows hardware; that changed with [#8](https://github.com/Christian-Katzmann/app-it/pull/8), the first run on an actual Windows machine (fixing a WebView2 window-title bug) — a real first step, not a finish line. If you're on Windows and want to help harden it, the doorway is [docs/WINDOWS.md](docs/WINDOWS.md).
 
 **Local-only** — app-it reads your project *on your machine* to choose a launcher strategy. It uploads nothing, runs no telemetry, adds no runtime dependencies, and never touches your business-logic source. The only thing it produces is an `.app` on your own Dock.
 
@@ -137,11 +137,12 @@ This repo *is* agent tooling, and agents are expected to work in it. Start with 
 
 ## Community nudge
 
-The `app-it-static` companion was inspired by feedback from the r/ClaudeAI launch thread. Thanks to:
+The `app-it-static` companion was inspired by feedback from the r/ClaudeAI launch thread, and the project keeps growing on community help. Thanks to:
 
 - **`TechExpert2910`** for pointing out that finished apps shouldn't need a full dev server, and that Vercel/PWA-style workflows are far lighter — the nudge that became "serve the build locally, not a dev server."
 - **`K_M_A_2k`** for highlighting that deployed/static proof-of-concepts are often the standard workflow and are easier to share.
 - **`Vo_Mimbre`** for the corporate-environment caveat: external hosting like Vercel isn't always approved, which is exactly why a *local* static launcher earns its place even for finished projects.
+- **`Firnschnee`** for the first real-hardware Windows validation, fixing the WebView2 window-title bug and proving the Windows beta actually runs.
 
 ## License
 

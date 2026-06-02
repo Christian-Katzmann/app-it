@@ -23,6 +23,7 @@ require_file ".agents/plugins/marketplace.json"
 require_file "plugins/app-it/skills/app-it/SKILL.md"
 require_file "plugins/app-it/skills/app-it/templates/wrapper.swift"
 require_file "plugins/app-it/skills/app-it/templates/desktop-build.sh"
+require_file "plugins/app-it/skills/app-it/templates/desktop-doctor.sh"
 require_file "README.md"
 require_file "LICENSE"
 

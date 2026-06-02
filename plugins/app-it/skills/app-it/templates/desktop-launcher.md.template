@@ -57,6 +57,31 @@ Then:
 
 If the Dock briefly shows a stale thumbnail after a reboot, drag the Stack out and back in to force-rebuild — the install step's automatic Dock refresh covers everything else.
 
+## Something's wrong? Diagnose it
+
+```bash
+./scripts/desktop-doctor.sh          # read-only health check for one launcher
+./scripts/desktop-doctor.sh --tail   # …and show the tail of the launcher log
+```
+
+It checks the things that actually break a generated app — config, the installed
+`.app`, icon, bundle id, signature, quarantine, the preferred-vs-runtime port,
+stale processes, whether the running server really belongs to this launcher, and
+whether the installed launcher predates the current templates — and prints a
+short report you can paste straight into a bug report. It never touches your
+project; when it isn't sure, it says "probably".
+
+To clean up app-it's **own** generated state (stale pid/port files, a stale
+LaunchServices entry, a rebuilt icon, quarantine on the `.app`):
+
+```bash
+./scripts/desktop-doctor.sh --fix-safe
+```
+
+`--fix-safe` only ever touches app-it's generated artifacts — never your source,
+dependencies, or config. For multi-app projects, pass a slug to pick one:
+`./scripts/desktop-doctor.sh <slug>`.
+
 ## Logs & runtime files
 
 Per app, logs live under `~/Library/Logs/app-it/<slug>/`:

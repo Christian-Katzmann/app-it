@@ -61,6 +61,13 @@ public partial class MainWindow : Window
             Web.CoreWebView2.NavigationStarting += KeepLoopbackInWindow;
             Web.CoreWebView2.NewWindowRequested += OpenInNewWindowExternally;
 
+            // Pin the window title to the configured app name. WebView2
+            // auto-syncs Window.Title to the page's <title> tag via
+            // DocumentTitleChanged, which overwrites the --title value.
+            // macOS doesn't have this problem (NSWindow.title is independent
+            // of WKWebView), so this handler is the Windows-specific fix.
+            Web.CoreWebView2.DocumentTitleChanged += (_, _) => Title = _config.Title;
+
             // Spawn the dev server into the host-owned Job Object, then wait for
             // the port to answer so the first paint is the app, not an error
             // page. W-Static has no StartCommand/Port — skip straight to Navigate.
