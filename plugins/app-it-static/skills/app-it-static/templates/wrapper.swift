@@ -176,10 +176,21 @@ final class AppDelegate: NSObject,
     }
 
     private func bestScreen(for frame: NSRect) -> NSScreen? {
-        let visibleScreens = NSScreen.screens
-        return visibleScreens.first(where: { $0.visibleFrame.intersects(frame) })
-            ?? NSScreen.main
-            ?? visibleScreens.first
+        // When a frame straddles two displays, the first intersecting screen is
+        // arbitrary. Pick the screen holding the largest slice of the frame, and
+        // only fall back to main/first when nothing intersects at all.
+        var best: NSScreen?
+        var largestArea: CGFloat = 0
+        for screen in NSScreen.screens {
+            let overlap = screen.visibleFrame.intersection(frame)
+            guard !overlap.isNull else { continue }
+            let area = overlap.width * overlap.height
+            if area > largestArea {
+                largestArea = area
+                best = screen
+            }
+        }
+        return best ?? NSScreen.main ?? NSScreen.screens.first
     }
 
     private var hasSynthesizedGesture = false

@@ -34,7 +34,7 @@ PROJECT_ROOT="__PROJECT_ROOT__"
 PREFERRED_PORT=__PORT__
 POLYFILL_PATH="__POLYFILL_PATH__"
 
-# Keep `$PORT` and other shell syntax literal until the daemon spawn below.
+# Keep `$PORT` and other shell syntax literal until the daemon spawns below.
 # A plain double-quoted assignment here would expand `$PORT` before the
 # launcher has selected its runtime port, breaking Vite/SvelteKit recipes.
 START_COMMAND="$(cat <<'APP_IT_START_COMMAND'
