@@ -48,6 +48,16 @@ Replace the source PNG (square, ≥ 1024×1024 ideal):
 
 - __APP_NAME__: `assets/__APP_SLUG__-icon.png`
 
+Check how it will actually look in the Dock *before* rebuilding (optional but recommended):
+
+```bash
+APP_NAME='__APP_NAME__' APP_SLUG='__APP_SLUG__' ./scripts/desktop-icons-preview.sh --open
+```
+
+This renders the icon at every Dock/Finder size on light and dark backgrounds and flags
+common problems in plain language (wordmark that smears at 16px, low contrast, too much
+transparent padding, sub-1024 source). Deterministic and local — nothing leaves your machine.
+
 Then:
 
 ```bash

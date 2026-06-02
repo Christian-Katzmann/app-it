@@ -81,6 +81,7 @@ templates/
   wrapper.swift                    # native WKWebView shell — SHARED, identical to app-it's
   info-plist-template.xml          # Info.plist with placeholders — SHARED, identical to app-it's
   desktop-icons.sh                 # AppIcon.icns generator — SHARED, identical to app-it's
+  desktop-icons-preview.sh         # preview a source icon at Dock sizes + warnings — SHARED, identical to app-it's
   desktop-install.sh               # install to ~/Applications/App It/ — SHARED, identical to app-it's
   placeholder-icon-gen.sh          # last-resort icon generator — SHARED, identical to app-it's
   static-server.py                 # tiny zero-dependency static server (SPA fallback)
@@ -94,7 +95,7 @@ templates/
   desktop-launcher.md.template     # user-facing doc
 ```
 
-The five **SHARED** templates are byte-identical to app-it's and CI guards them
+The six **SHARED** templates are byte-identical to app-it's and CI guards them
 against drift. Don't edit them here — if launcher internals need changing, change
 app-it's copy and re-sync, so both skills stay in step.
 
@@ -291,11 +292,12 @@ server — don't rewrite the app to make `file://` work.
 ```json
 {
   "scripts": {
-    "desktop:icons":   "APP_NAME='Fjord' APP_SLUG='fjord' ./scripts/desktop-icons.sh",
-    "desktop:build":   "./scripts/desktop-build.sh",
-    "desktop:install": "./scripts/desktop-install.sh",
-    "desktop:quit":    "./scripts/desktop-quit.sh",
-    "desktop:rebuild": "./scripts/desktop-rebuild.sh"
+    "desktop:icons":         "APP_NAME='Fjord' APP_SLUG='fjord' ./scripts/desktop-icons.sh",
+    "desktop:icons:preview": "APP_NAME='Fjord' APP_SLUG='fjord' ./scripts/desktop-icons-preview.sh",
+    "desktop:build":         "./scripts/desktop-build.sh",
+    "desktop:install":       "./scripts/desktop-install.sh",
+    "desktop:quit":          "./scripts/desktop-quit.sh",
+    "desktop:rebuild":       "./scripts/desktop-rebuild.sh"
   }
 }
 ```

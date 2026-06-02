@@ -24,6 +24,8 @@ require_file "plugins/app-it/skills/app-it/SKILL.md"
 require_file "plugins/app-it/skills/app-it/templates/wrapper.swift"
 require_file "plugins/app-it/skills/app-it/templates/desktop-build.sh"
 require_file "plugins/app-it/skills/app-it/templates/desktop-doctor.sh"
+require_file "plugins/app-it/skills/app-it/templates/desktop-icons-preview.sh"
+require_file "plugins/app-it/skills/app-it/templates/placeholder-icon-gen.sh"
 require_file "README.md"
 require_file "LICENSE"
 
@@ -150,7 +152,7 @@ fi
 # two subtly different launchers.
 APP_IT_TPL="plugins/app-it/skills/app-it/templates"
 STATIC_TPL="plugins/app-it-static/skills/app-it-static/templates"
-for shared in wrapper.swift desktop-icons.sh desktop-install.sh info-plist-template.xml placeholder-icon-gen.sh; do
+for shared in wrapper.swift desktop-icons.sh desktop-icons-preview.sh desktop-install.sh info-plist-template.xml placeholder-icon-gen.sh; do
   if ! diff -q "$APP_IT_TPL/$shared" "$STATIC_TPL/$shared" >/dev/null; then
     fail "shared template drift: $shared differs between app-it and app-it-static (keep them byte-identical; edit app-it's copy and re-sync)"
   fi
