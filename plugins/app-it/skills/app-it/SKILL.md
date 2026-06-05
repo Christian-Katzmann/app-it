@@ -1,14 +1,15 @@
 ---
 name: app-it
 description: >-
-  Turn a local project or hosted Claude Artifact URL into a macOS
-  Dock-launchable .app. Use when the user wants a clickable Dock app, local app
-  package, icon, App It install, Artifact wrapper, or repeatable desktop
-  launcher. Defaults to native Swift WebKit, shipped templates, and
-  verification of build, launch, ports, quit, warm relaunch, and cleanup.
+  Turn a local project or a hosted web app (including a published Claude
+  Artifact URL) into a macOS Dock-launchable .app. Use when the user wants a
+  clickable Dock app, local app package, icon, App It install, hosted-URL or
+  Artifact wrapper, or repeatable desktop launcher. Defaults to native Swift
+  WebKit, shipped templates, and verification of build, launch, ports, quit,
+  warm relaunch, and cleanup.
 ---
 
-# app-it - Make a local project or hosted Artifact launchable from the Dock
+# app-it - Make a local project or hosted web app launchable from the Dock
 
 App It installs local projects under `~/Applications/App It/` as clickable
 macOS apps: click opens, window close stays warm, Cmd+Q cleans up.
@@ -26,10 +27,11 @@ macOS apps: click opens, window close stays warm, Cmd+Q cleans up.
    project already has one or Strategy A cannot satisfy the requirement.
 6. Verify the installed app path, runtime port truth, warm relaunch, Cmd+Q
    cleanup, and report honestly when GUI-only checks need a human.
-7. Keep Claude Artifact auth with Claude. If an Artifact uses hosted runtime
-   APIs (`window.claude`, `window.storage`, MCP prompts, or Claude-provided
-   auth), package a published/shared `claude.ai` URL. Never copy sessions,
-   cookies, API keys, or another user's Claude auth into a local bundle.
+7. When wrapping a hosted app, keep auth with the host. Never copy sessions,
+   cookies, API keys, or another user's auth into a local bundle. For a Claude
+   Artifact that uses hosted runtime APIs (`window.claude`, `window.storage`,
+   MCP prompts, or Claude-provided auth), package the published/shared
+   `claude.ai` URL rather than copied source.
 
 ## Reference Map
 

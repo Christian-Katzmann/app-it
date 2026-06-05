@@ -9,16 +9,18 @@
 | OS | macOS |
 | Primary shell | Swift `WKWebView` wrapper |
 | Fallback shell | Chrome `--app` mode |
-| Common targets | Vite + React, SvelteKit, Astro, Next.js, static sites, local multi-server apps, published Claude Artifact URLs |
+| Common targets | Vite + React, SvelteKit, Astro, Next.js, static sites, local multi-server apps, hosted web app URLs (e.g. a published Claude Artifact) |
 | Install destination | `~/Applications/App It/` by default |
 | Signing | Ad-hoc local code signing only |
 
-## Claude Artifact URL wrappers
+## Hosted web app (URL-only) wrappers
 
-`app-it` can build a URL-only `.app` around a published/shared Claude Artifact
-link. That path intentionally keeps Claude in charge of authentication and
-artifact runtime APIs: the bundle loads the hosted `claude.ai` URL, the user
-signs into Claude inside the app window, and usage belongs to that user's plan.
+`app-it` can build a URL-only `.app` around a hosted web app — a deployed
+dashboard, an internal tool, or a published/shared Claude Artifact. The path
+intentionally keeps the host in charge of authentication and runtime: the bundle
+loads the hosted URL, the user signs in inside the app window, and usage belongs
+to that user's own account. For a Claude Artifact, the host is `claude.ai` and
+the artifact's runtime APIs stay with Claude.
 
 Raw JSX/TSX exported from an artifact is only a normal local web app source
 file. If it calls Claude's hosted artifact APIs (`window.claude`,

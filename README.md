@@ -1,6 +1,6 @@
 # app-it
 
-Turn a local web project or hosted Claude Artifact into a macOS Dock-launchable `.app` bundle — a native window, its own Dock icon, and clean start/stop — **without Electron, Tauri, or a rewrite.**
+Turn a local web project — or any hosted web app — into a macOS Dock-launchable `.app` bundle — a native window, its own Dock icon, and clean start/stop — **without Electron, Tauri, or a rewrite.**
 
 > **Unofficial community project** — not affiliated with, endorsed by, or sponsored by Anthropic or OpenAI. "Claude Code" and "Codex" are their respective owners' marks, named here only to say which assistants app-it plugs into. This is an independent open-source tool built by one developer.
 
@@ -12,14 +12,14 @@ Turn a local web project or hosted Claude Artifact into a macOS Dock-launchable 
 
 **Windows beta** — macOS is in daily use; Windows is an early beta, now with its first real-hardware fixes but still needing more. A complete sibling plugin (`plugins/app-it-windows/`), gated by a required `windows-latest` CI job (build · PowerShell lint · manifest parse · icon round-trip), mirrors the macOS contract with Windows primitives. The author runs only macOS, so for a long time it had never touched real Windows hardware; that changed with [#8](https://github.com/Christian-Katzmann/app-it/pull/8), the first run on an actual Windows machine, and a run of fixes since — a real start, not a finish line. If you're on Windows and want to help harden it, the doorway is [docs/WINDOWS.md](docs/WINDOWS.md).
 
-**Local-first** — app-it reads your project *on your machine* to choose a launcher strategy. It uploads nothing, runs no telemetry, adds no runtime dependencies, and never touches your business-logic source. The only thing it produces is an `.app` on your own Dock. For Claude Artifacts, the supported networked path is explicit: wrap a published/shared `claude.ai` artifact URL so Claude handles login and usage against each user's own plan. See [Privacy](PRIVACY.md) and [Terms](TERMS.md) for the plain-language policy.
+**Local-first** — app-it reads your project *on your machine* to choose a launcher strategy. It uploads nothing, runs no telemetry, adds no runtime dependencies, and never touches your business-logic source. The only thing it produces is an `.app` on your own Dock. For a hosted web app — a published Claude Artifact, a deployed dashboard, an internal tool — the supported networked path is explicit: wrap the hosted URL so the host handles login and keeps usage on each user's own account. See [Privacy](PRIVACY.md) and [Terms](TERMS.md) for the plain-language policy.
 
-`app-it` is an assistant-agnostic plugin/skill. It works with **Claude Code** and **Codex**, and builds a small, repeatable launcher around an existing local project or hosted artifact so that double-clicking starts the right runtime, opens a native window, keeps the Dock icon as *your* app, and cleans up when you quit.
+`app-it` is an assistant-agnostic plugin/skill. It works with **Claude Code** and **Codex**, and builds a small, repeatable launcher around an existing local project or hosted web app so that double-clicking starts the right runtime, opens a native window, keeps the Dock icon as *your* app, and cleans up when you quit.
 
 ## What app-it is not
 
 - **Not Electron, Tauri, or a native rewrite.** It wraps your existing dev setup; it doesn't replace it, migrate it, or add a bundler to your dependency tree.
-- **Not a general signed distribution system.** No notarization, no App Store, no auto-update, no installer. Claude Artifact URL wrappers are self-contained enough to zip and share, but they are still ad-hoc-signed local bundles; recipients must trust the bundle and sign into Claude with their own account.
+- **Not a general signed distribution system.** No notarization, no App Store, no auto-update, no installer. A wrapper around a hosted web app is self-contained enough to zip and share, but it is still an ad-hoc-signed local bundle; recipients must trust the bundle and sign in with their own account.
 - **Not cross-platform.** macOS only — and on purpose. Windows is a genuinely different problem (WebView2, `.lnk`, `.ico`, SmartScreen), so it belongs in a separate plugin rather than a blurred promise. See [Compatibility](docs/COMPATIBILITY.md).
 - **Not a hosted service.** Nothing runs in the cloud and there is no live demo to visit — the proof is the apps on your own Dock (the Stack further down is real).
 
@@ -31,14 +31,14 @@ Turn a local web project or hosted Claude Artifact into a macOS Dock-launchable 
   a local web project         inspects it from disk,     YourApp.app on your Dock
   Vite React, SvelteKit,      picks a strategy, then     · its own icon
   Astro, Next, static, or ──▶ builds & signs a .app  ──▶ · native window, one click
-  Claude Artifact URL         around a WebKit shell      · ⌘Q quits & frees the port
+  a hosted web app URL        around a WebKit shell      · ⌘Q quits & frees the port
 ```
 
 Under the hood, app-it:
 
 - **Inspects before it touches anything** — project type, dev scripts, ports, browser-API needs, icon sources.
 - **Picks a launcher strategy** — a native Swift `WKWebView` shell by default (so the Dock icon stays *yours*), Chrome `--app` mode only when a project needs Chromium-only APIs.
-- **Wraps hosted Claude Artifacts without shared secrets** — set `external_url`/`artifact_url` to a published artifact link; each user signs into Claude in the app window and uses their own Claude plan.
+- **Wraps a hosted web app without shared secrets** — set `external_url` to a hosted link (for example, a published Claude Artifact); each user signs in within the app window and uses their own account.
 - **Copies proven, hard-won templates** into the project rather than re-deriving fragile launcher logic each time.
 - **Builds and ad-hoc-signs a real `.app`** — universal (arm64 + x86_64), Gatekeeper-friendly, with a generated `.icns`.
 - **Gets the lifecycle right** — closing the window (⌘W / red-X) leaves the dev server warm for a ~250 ms re-launch; ⌘Q quits the app *and* frees the port.
@@ -78,7 +78,7 @@ Then, from inside any local web project, ask your assistant:
 
 Natural triggers work too: *"make this clickable from the Dock"*, *"give this an icon"*, *"dockify this"*, *"package this as a local app"*.
 
-For Claude Artifacts that call Claude from inside the artifact, use the hosted artifact link, not copied JSX source. A raw `.jsx` file can be packaged as an ordinary local React app only when it does not depend on Claude's hosted artifact runtime (`window.claude`, `window.storage`, MCP prompts, or Claude-provided auth).
+To wrap a hosted web app, point app-it at its URL rather than copied source. A Claude Artifact is the common case: use the hosted artifact link, since a raw `.jsx` file works as an ordinary local React app only when it does not depend on Claude's hosted runtime (`window.claude`, `window.storage`, MCP prompts, or Claude-provided auth).
 
 *Optional:* for finished apps, also install the lighter companion — `claude plugin install app-it-static@app-it` (or `codex plugin add app-it-static@app-it`), then run `/app-it-static`.
 
@@ -161,7 +161,7 @@ The `app-it-static` companion was inspired by feedback from the r/ClaudeAI launc
 - **`K_M_A_2k`** for highlighting that deployed/static proof-of-concepts are often the standard workflow and are easier to share.
 - **`Vo_Mimbre`** for the corporate-environment caveat: external hosting like Vercel isn't always approved, which is exactly why a *local* static launcher earns its place even for finished projects.
 - **`Firnschnee`** for becoming the Windows beta's real-hardware tester — the first proof it actually runs, then a run of fixes each traced and verified on a real Windows 11 box: the window title, the `app-it-host` label stuck in the taskbar right-click menu, and a graceful path when the WebView2 runtime is missing (offer the installer instead of a dead window).
-- **`SohamKela`** for hardening the native window so a restored frame can't open off-screen or postage-stamp sized, and adding first-class Vite + React, SvelteKit, and Astro dev recipes.
+- **`SohamKela`** for hardening the native window so a restored frame can't open off-screen or postage-stamp sized, adding first-class Vite + React, SvelteKit, and Astro dev recipes, and — most recently — the URL-only launcher that wraps a hosted web app (a published Claude Artifact is the common case) in a Dock window: no local server, no shared secrets, each recipient signed into their own account.
 
 ## License
 
