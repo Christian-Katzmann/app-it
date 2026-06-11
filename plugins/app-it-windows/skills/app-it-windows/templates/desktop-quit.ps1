@@ -113,7 +113,11 @@ function Invoke-PortSweep {
     if ($PidFile -and (Test-Path $PidFile)) {
         $recorded = (Get-Content -Raw $PidFile).Trim()
         $pidNum = 0
-        if ([int]::TryParse($recorded, [ref]$pidNum)) {
+        # Only count it as "closed" if the recorded process was actually alive.
+        # A stale server.pid (left by a crash or force-kill) otherwise makes the
+        # final report claim "Stopped dev servers" when nothing was running.
+        if ([int]::TryParse($recorded, [ref]$pidNum) -and
+            (Get-Process -Id $pidNum -ErrorAction SilentlyContinue)) {
             Stop-ProcessTree -ProcessId $pidNum
             $closed = $true
         }

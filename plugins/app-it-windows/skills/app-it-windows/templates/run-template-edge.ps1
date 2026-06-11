@@ -185,7 +185,12 @@ $job = [AppIt.Win32Job]::CreateKillOnCloseJob()
 $env:PORT = "$chosenPort"
 $psi = [System.Diagnostics.ProcessStartInfo]::new()
 $psi.FileName = $env:ComSpec   # cmd.exe
-$psi.Arguments = "/c `"$StartCommand`" > `"$ServerLog`" 2>&1"
+# /s + ONE outer quote pair, inner path quotes doubled. Without /s, cmd strips
+# the first and last quote of a command line that contains a redirect, turning
+# `"node ..." > "log"` into `node ..." > "log` (a stray quote), so the server
+# never starts and no log is written. /s says "use everything between the first
+# and last quote verbatim", so the whole pipeline must live inside that one pair.
+$psi.Arguments = "/s /c `"$StartCommand > `"`"$ServerLog`"`" 2>&1`""
 $psi.WorkingDirectory = $ProjectRoot
 $psi.UseShellExecute = $false
 $psi.CreateNoWindow = $true
