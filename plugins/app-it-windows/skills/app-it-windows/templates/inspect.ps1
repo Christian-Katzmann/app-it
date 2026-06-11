@@ -103,7 +103,9 @@ Write-Section 'FSA (File System Access) usage'
 $searchDirs = @('src','services','app','lib') | ForEach-Object { Join-Path $Root $_ } | Where-Object { Test-Path $_ }
 function Search-Code {
     param([string]$Pattern, [string[]]$Dirs)
-    if ($Dirs.Count -eq 0) { return @() }
+    # -not covers $null (no dir matched Test-Path) and @() alike. $Dirs.Count
+    # would throw under StrictMode when the pipeline that built it yielded $null.
+    if (-not $Dirs) { return @() }
     Get-ChildItem -Path $Dirs -Recurse -Include *.ts,*.tsx,*.js,*.jsx -ErrorAction SilentlyContinue |
         Select-String -Pattern $Pattern -ErrorAction SilentlyContinue
 }
