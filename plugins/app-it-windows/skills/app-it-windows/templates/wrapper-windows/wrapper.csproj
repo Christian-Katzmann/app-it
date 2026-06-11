@@ -42,6 +42,15 @@
          setups. The MANIFEST builds from a Mac; whether the result actually
          looks right at each DPI is deferred to a Windows maintainer (ADR 0005). -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <!-- WFAC010: the WinForms SDK analyzer (pulled in by UseWindowsForms, which
+         is here only for the tray NotifyIcon) wants DPI configured via
+         ApplicationHighDpiMode / Application.SetHighDpiMode. This is a WPF-first
+         host and declares PerMonitorV2 in app.manifest, the standard WPF way, so
+         the manifest is correct and SetHighDpiMode is never called. Silence the
+         analyzer rather than move DPI config into a WinForms API this app does
+         not use. Does not change DPI behavior. -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
