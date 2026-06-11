@@ -30,18 +30,34 @@ Set-StrictMode -Version Latest
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Root      = if ($env:APP_IT_PROJECT_ROOT) { $env:APP_IT_PROJECT_ROOT } else { (Resolve-Path (Join-Path $ScriptDir '..')).Path }
 
-$defaultTarget = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\app-it'
-$target = if ($env:APP_IT_INSTALL_DIR) { $env:APP_IT_INSTALL_DIR } else { $defaultTarget }
+$ConfigFile = Join-Path $ScriptDir 'app-it.config.json'
 
-if (-not (Test-Path $target)) {
-    if ($target -eq $defaultTarget) {
-        New-Item -ItemType Directory -Force -Path $target | Out-Null
-        Write-Host "Created $target."
-        Write-Host 'Your apps now appear under "app-it" in the Start Menu. Right-click any one to pin it to Start or the taskbar.'
-    } else {
-        Write-Error "Install target $target does not exist."
-        exit 1
+# Per-app Start Menu folder. app-it.config.example.json documents
+# platform.windows.start_menu_folder as configurable (default "app-it"); read it
+# here so the field actually takes effect (it was previously ignored). The folder
+# is resolved per app in the loop below. APP_IT_INSTALL_DIR still overrides
+# everything with a single explicit target for all apps, exactly as before.
+$defaultFolder = 'app-it'
+$folderForApp  = @{}
+if (Test-Path $ConfigFile) {
+    $cfg = Get-Content -Raw $ConfigFile | ConvertFrom-Json
+    foreach ($a in $cfg.apps) {
+        $folder = $defaultFolder
+        if ($a.PSObject.Properties.Name -contains 'platform' -and $a.platform -and
+            $a.platform.PSObject.Properties.Name -contains 'windows' -and $a.platform.windows -and
+            $a.platform.windows.PSObject.Properties.Name -contains 'start_menu_folder' -and
+            $a.platform.windows.start_menu_folder) {
+            $folder = [string]$a.platform.windows.start_menu_folder
+        }
+        if ($a.name) { $folderForApp[[string]$a.name] = $folder }
     }
+}
+
+$programsBase   = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
+$overrideTarget = $env:APP_IT_INSTALL_DIR
+if ($overrideTarget -and -not (Test-Path $overrideTarget)) {
+    Write-Error "Install target $overrideTarget does not exist."
+    exit 1
 }
 
 # Prefer PowerShell 7 (pwsh) if present, else Windows PowerShell.
@@ -61,6 +77,13 @@ foreach ($appDir in Get-ChildItem -Path $desktop -Directory -ErrorAction Silentl
     if (-not (Test-Path $runScript)) {
         Write-Warning "  skipping $($appDir.Name): no run.ps1 (re-run desktop-build.ps1)."
         continue
+    }
+
+    $folder = if ($folderForApp.ContainsKey($appDir.Name)) { $folderForApp[$appDir.Name] } else { $defaultFolder }
+    $target = if ($overrideTarget) { $overrideTarget } else { Join-Path $programsBase $folder }
+    if (-not (Test-Path $target)) {
+        New-Item -ItemType Directory -Force -Path $target | Out-Null
+        Write-Host "Created $target."
     }
 
     $lnkPath = Join-Path $target "$($appDir.Name).lnk"
@@ -89,4 +112,4 @@ if ($count -eq 0) {
 }
 
 Write-Host ''
-Write-Host "Installed $count shortcut(s) under $target"
+Write-Host "Installed $count shortcut(s). Right-click any one in the Start Menu to pin it to Start or the taskbar."
