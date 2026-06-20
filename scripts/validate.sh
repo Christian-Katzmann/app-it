@@ -35,6 +35,8 @@ require_file "plugins/app-it/skills/app-it/templates/desktop-icons-preview.sh"
 require_file "plugins/app-it/skills/app-it/templates/placeholder-icon-gen.sh"
 require_file "plugins/app-it/skills/app-it/templates/run-template-url.sh"
 require_file "plugins/app-it/skills/app-it/templates/run-template-url-chrome.sh"
+require_file "plugins/app-it/skills/app-it/templates/desktop-upgrade.sh"
+require_file "plugins/app-it/skills/app-it/templates/app-it"
 require_file "scripts/coverage.sh"
 require_file "scripts/plugin-eval-score.sh"
 require_file "README.md"
@@ -150,6 +152,7 @@ for file in install.sh \
   scripts/coverage.sh \
   scripts/plugin-eval-score.sh \
   plugins/app-it/skills/app-it/templates/*.sh \
+  plugins/app-it/skills/app-it/templates/app-it \
   plugins/app-it-static/skills/app-it-static/templates/*.sh; do
   bash -n "$file"
 done

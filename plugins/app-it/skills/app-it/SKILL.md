@@ -159,6 +159,11 @@ convention or the user asked for staging. Do not commit unless asked.
 - Astro command: `npm run dev -- --host 127.0.0.1 --port "$PORT"`.
 - Chrome fallback shutdown: document `desktop:quit` as primary cleanup because
   Chrome close/Cmd+Q do not map to the Swift wrapper lifecycle.
+- Command surface: `scripts/app-it` routes `inspect | apply | verify | upgrade`
+  over the vendored scripts (a router, not a binary or runtime dep). `upgrade`
+  (`desktop-upgrade.sh`) re-vendors newer templates when the manifest's
+  `template_version` is behind, touches only app-it's own artifacts, and rolls
+  back if the post-upgrade verify fails. See `references/generated-files.md`.
 
 ## Stop Signs
 

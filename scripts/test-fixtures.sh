@@ -630,6 +630,77 @@ else
 fi
 
 # =============================================================================
+section "upgrade — drift detection + safe re-vendor (boundary held) + verify"
+# The step most likely to silently no-op, so this proves the WHOLE chain:
+# a drifted manifest is detected, the template roster is genuinely re-vendored
+# (a stale sentinel in an app-it-owned file is overwritten), the user's product
+# code is left untouched (ownership boundary), and verify passes afterward.
+setup_proj vite-basic app-it vite-basic
+UP_TPL="$REPO/plugins/app-it/skills/app-it/templates"   # the "newer" templates
+# Introduce drift: downgrade the manifest's provenance stamps.
+python3 - "$PROJ/scripts/app-it.config.json" <<'PY'
+import json, sys
+from collections import OrderedDict
+p = sys.argv[1]
+c = json.load(open(p), object_pairs_hook=OrderedDict)
+c["template_version"] = "2026.01"
+c["generator_version"] = "0.1.0"
+json.dump(c, open(p, "w"), ensure_ascii=False, indent=2)
+PY
+# Stale marker INSIDE an app-it-owned roster file — upgrade must overwrite it.
+printf '\n# STALE_ROSTER_SENTINEL\n' >> "$PROJ/scripts/desktop-doctor.sh"
+# Markers in the user's product code — upgrade must NOT touch these.
+printf '\n// USER_CODE_SENTINEL\n' >> "$PROJ/vite.config.ts"
+UP_PKG_BEFORE="$(shasum -a 256 "$PROJ/package.json" | awk '{print $1}')"
+
+# --check is read-only and must flag the drift (exit 3). Capture rc without
+# tripping the suite's `set -e` (the assignment would otherwise abort on exit 3).
+CHECK_RC=0
+CHECK_OUT="$(env APP_IT_TEMPLATE_SRC="$UP_TPL" APP_IT_PROJECT_ROOT="$PROJ" \
+    bash "$PROJ/scripts/app-it" upgrade --check vite-basic 2>&1)" || CHECK_RC=$?
+has "upgrade --check reports the drift" "$CHECK_OUT" "upgrade available: 2026.01 -> 2026.06"
+if [ "$CHECK_RC" = "3" ]; then ok "upgrade --check exits 3 when behind (read-only)"; else bad "upgrade --check exit was $CHECK_RC, expected 3"; fi
+has "upgrade --check changed nothing (sentinel still present)" "$(cat "$PROJ/scripts/desktop-doctor.sh")" "STALE_ROSTER_SENTINEL"
+
+# Real upgrade: re-vendor from the newer templates, rebuild, verify.
+UP_RC=0
+UP_OUT="$(env APP_IT_TEMPLATE_SRC="$UP_TPL" APP_IT_PROJECT_ROOT="$PROJ" APP_IT_SWIFT_ARCHS="$ARCH" \
+    bash "$PROJ/scripts/app-it" upgrade vite-basic 2>&1)" || UP_RC=$?
+printf '%s\n' "$UP_OUT" | sed 's/^/       /'
+if [ "$UP_RC" = "0" ]; then ok "app-it upgrade exited 0"; else bad "app-it upgrade exited $UP_RC"; fi
+has "upgrade re-vendored the template roster" "$UP_OUT" "re-vendored"
+has "upgrade re-stamped the manifest provenance" "$UP_OUT" "2026.01 -> 2026.06"
+# Proof the re-vendor was REAL, not a no-op: the stale sentinel is gone.
+lacks "re-vendor overwrote the stale roster file (no silent no-op)" "$(cat "$PROJ/scripts/desktop-doctor.sh")" "STALE_ROSTER_SENTINEL"
+# Ownership boundary: the user's product code and deps are untouched.
+has "ownership boundary — user product code untouched" "$(cat "$PROJ/vite.config.ts")" "USER_CODE_SENTINEL"
+UP_PKG_AFTER="$(shasum -a 256 "$PROJ/package.json" | awk '{print $1}')"
+if [ "$UP_PKG_BEFORE" = "$UP_PKG_AFTER" ]; then ok "ownership boundary — package.json untouched"; else bad "package.json was modified by upgrade"; fi
+# Manifest now stamped to the current vintage, with apps[] preserved.
+if python3 - "$PROJ/scripts/app-it.config.json" <<'PY'
+import json, sys
+c = json.load(open(sys.argv[1]))
+assert c["template_version"] == "2026.06", c.get("template_version")
+assert c["generator_version"] == "0.2.0", c.get("generator_version")
+assert c["apps"][0]["slug"] == "vite-basic", "apps[] not preserved"
+PY
+then ok "manifest re-stamped to 2026.06 and apps[] preserved"; else bad "manifest not correctly re-stamped"; fi
+# verify passes (no ownership/identity failures) after the upgrade.
+APP_IT_PROJECT_ROOT="$PROJ" bash "$PROJ/scripts/desktop-verify.sh" --json vite-basic >"$PROJ/verify-upgrade.json" 2>"$PROJ/verify-upgrade.err" || true
+if python3 - "$PROJ/verify-upgrade.json" <<'PY'
+import json, sys
+from pathlib import Path
+p = json.loads(Path(sys.argv[1]).read_text())
+assert p["status"] in ("pass", "warn"), p.get("status")
+assert p["counts"]["fail"] == 0, p["counts"]
+assert p["manifest"]["template_version"] == "2026.06", p["manifest"]
+PY
+then ok "verify passes after upgrade (no ownership/identity failures)"; else bad "verify did NOT pass after upgrade"; sed 's/^/       /' "$PROJ/verify-upgrade.json" 2>/dev/null; fi
+# Tear down the warm server the upgrade's verify --build left running.
+UP_RUNTIME_PORT="$(cat "$(state_dir vite-basic)/server.port" 2>/dev/null || true)"
+quit_clean vite-basic "${UP_RUNTIME_PORT:-41000}"
+
+# =============================================================================
 if [ "${APP_IT_RUN_REAL:-}" = "1" ]; then
     section "vite-real — real npm install + real Vite launch (scheduled/release lane)"
     setup_proj vite-real app-it vite-real

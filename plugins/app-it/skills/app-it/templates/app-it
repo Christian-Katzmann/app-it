@@ -1,0 +1,61 @@
+#!/bin/bash
+# app-it — thin command surface over the vendored desktop:* scripts.
+#
+# This is a ROUTER, not an engine: every verb execs an existing script that
+# lives next to it. No binary, no runtime dependency — just a friendlier front
+# door for the four lifecycle verbs.
+#
+#   app-it inspect [path-args]          read-only project inspection  -> inspect.sh
+#   app-it apply                        build + install the launcher  -> desktop-build.sh + desktop-install.sh
+#   app-it verify [--strict --json ...] prove it works                -> desktop-verify.sh
+#   app-it upgrade [--check --force]    re-vendor newer templates     -> desktop-upgrade.sh
+#   app-it help
+#
+# The underlying scripts (desktop-build.sh, desktop-install.sh, desktop-doctor.sh,
+# desktop-quit.sh, ...) remain runnable directly; this just unifies the common path.
+# APP_IT_PROJECT_ROOT is honored by every routed script for the worktree workflow.
+
+set -uo pipefail
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+usage() {
+    sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+need() {  # need <script>
+    [ -x "$SCRIPT_DIR/$1" ] || { printf 'app-it: %s is missing or not executable in %s\n' "$1" "$SCRIPT_DIR" >&2; exit 2; }
+}
+
+cmd="${1:-help}"
+[ "$#" -gt 0 ] && shift || true
+
+case "$cmd" in
+    inspect)
+        need inspect.sh
+        exec "$SCRIPT_DIR/inspect.sh" "$@"
+        ;;
+    apply)
+        # Build, then install — the deterministic "make it a Dock app" path.
+        # Both act on every app in scripts/app-it.config.json (no selector).
+        need desktop-build.sh
+        need desktop-install.sh
+        "$SCRIPT_DIR/desktop-build.sh" || exit $?
+        exec "$SCRIPT_DIR/desktop-install.sh"
+        ;;
+    verify)
+        need desktop-verify.sh
+        exec "$SCRIPT_DIR/desktop-verify.sh" "$@"
+        ;;
+    upgrade)
+        need desktop-upgrade.sh
+        exec "$SCRIPT_DIR/desktop-upgrade.sh" "$@"
+        ;;
+    -h|--help|help)
+        usage
+        ;;
+    *)
+        printf 'app-it: unknown command '\''%s'\''\n\n' "$cmd" >&2
+        usage >&2
+        exit 2
+        ;;
+esac

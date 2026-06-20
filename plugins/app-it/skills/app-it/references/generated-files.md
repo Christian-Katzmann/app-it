@@ -21,7 +21,9 @@ Copy from `templates/`:
 - `desktop-quit.sh`
 - `desktop-doctor.sh`
 - `desktop-verify.sh`
+- `desktop-upgrade.sh`
 - `inspect.sh`
+- `app-it` (thin dispatcher: `inspect | apply | verify | upgrade`)
 - `placeholder-icon-gen.sh`
 - `fsa-polyfill-template.js`
 - `app-it.config.example.json`
@@ -124,10 +126,49 @@ Single-app projects:
     "desktop:install": "./scripts/desktop-install.sh",
     "desktop:quit": "./scripts/desktop-quit.sh",
     "desktop:doctor": "./scripts/desktop-doctor.sh",
-    "desktop:verify": "./scripts/desktop-verify.sh"
+    "desktop:verify": "./scripts/desktop-verify.sh",
+    "desktop:upgrade": "./scripts/desktop-upgrade.sh"
   }
 }
 ```
+
+## Command surface (`app-it` dispatcher)
+
+`scripts/app-it` is a thin router over the scripts above — no binary, no runtime
+dependency. It exposes the four lifecycle verbs and forwards flags verbatim:
+
+| Verb | Routes to | Notes |
+| --- | --- | --- |
+| `app-it inspect` | `inspect.sh` | read-only project inspection |
+| `app-it apply` | `desktop-build.sh` + `desktop-install.sh` | build then install (all apps in the config) |
+| `app-it verify` | `desktop-verify.sh` | e.g. `app-it verify --strict --json <slug>` |
+| `app-it upgrade` | `desktop-upgrade.sh` | re-vendor newer templates when the manifest is behind |
+
+The underlying `desktop-*.sh` scripts stay runnable directly; the dispatcher just
+unifies the common path. `APP_IT_PROJECT_ROOT` is honored by every routed script.
+
+## Upgrade (template re-vendor)
+
+`desktop-upgrade.sh` keeps a generated app current. It compares the manifest's
+`template_version` against the current templates' vintage (read from the template
+source's `app-it.config.example.json`) and, when the manifest is behind:
+
+1. Re-vendors the roster above into `scripts/` — and **only** that roster. It
+   never touches the user's product code, dependencies, `package.json`, icon
+   sources, or the per-app entries in `app-it.config.json` (the same ownership
+   boundary `desktop-doctor.sh --fix-safe` respects).
+2. Re-stamps just the three top-level provenance fields
+   (`schema_version`/`generator_version`/`template_version`).
+3. Rebuilds and re-runs `desktop-verify.sh`. If verify fails an
+   ownership/identity check, the upgrade is **refused** and the vendored scripts
+   + manifest are rolled back to their pre-upgrade state.
+
+The "newer templates" come from the directory the script lives in, or
+`APP_IT_TEMPLATE_SRC`. Run the plugin's copy (like `inspect.sh`) against a
+project to pull templates newer than what the project currently vendors:
+`/path/to/plugins/app-it/skills/app-it/templates/desktop-upgrade.sh`. Use
+`--check` for a read-only drift report (exit 3 when an upgrade is due) and
+`--force` to re-vendor even when already current.
 
 For multi-app projects, add per-app icon and preview scripts while keeping
 aggregate `desktop:build`, `desktop:install`, `desktop:quit`, and
