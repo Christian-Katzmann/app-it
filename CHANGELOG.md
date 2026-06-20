@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## 0.2.0 - 2026-06-20
+
 - Added: explicit `app-it` dev-server recipes for Vite + React, SvelteKit, and Astro, including disk detection signals, port behavior, and loopback-only start commands.
 - Fixed: generated run scripts now preserve `$PORT`/`$API_PORT` inside configured start commands until the launcher has selected the runtime ports.
 - Changed: hardened the shared Swift `WKWebView` shell against unusable restored window frames by clamping saved frames to the visible display and enforcing a minimum first-launch size.

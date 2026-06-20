@@ -1,6 +1,6 @@
 {
   "name": "app-it-static",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Turn a finished or buildable web app into a macOS Dock-launchable .app that serves the built output — no dev server, ~15 MB instead of 700 MB.",
   "author": {
     "name": "Christian Katzmann",

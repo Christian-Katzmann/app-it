@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "app-it",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A single-purpose assistant plugin for turning local web projects into macOS Dock-launchable .app bundles.",
   "metadata": {
     "description": "A single-purpose assistant plugin for turning local web projects into macOS Dock-launchable .app bundles."
@@ -14,7 +14,7 @@
     {
       "name": "app-it",
       "source": "./plugins/app-it",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "description": "Turn local web projects into macOS Dock-launchable .app bundles for personal daily use.",
       "author": {
         "name": "Christian Katzmann",
@@ -43,7 +43,7 @@
     {
       "name": "app-it-static",
       "source": "./plugins/app-it-static",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "description": "Turn a finished or buildable web app into a macOS Dock-launchable .app that serves the built output — no dev server, ~15 MB instead of 700 MB.",
       "author": {
         "name": "Christian Katzmann",
@@ -73,8 +73,8 @@
     {
       "name": "app-it-windows",
       "source": "./plugins/app-it-windows",
-      "version": "0.1.0",
-      "description": "Turn local web projects into Windows Start Menu launchable .exe apps. Beta · scaffolded · untested on real hardware · maintainer wanted.",
+      "version": "0.2.0",
+      "description": "Turn local web projects into Windows Start Menu launchable .exe apps. Beta · first real-hardware fixes landed · maintainer wanted.",
       "author": {
         "name": "Christian Katzmann",
         "url": "https://github.com/Christian-Katzmann"

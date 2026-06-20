@@ -1,6 +1,6 @@
 {
   "name": "app-it",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Turn local web projects into macOS Dock-launchable .app bundles for personal daily use.",
   "author": {
     "name": "Christian Katzmann",

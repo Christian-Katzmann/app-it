@@ -1,7 +1,7 @@
 {
   "name": "app-it-windows",
-  "version": "0.1.0",
-  "description": "Turn local web projects into Windows Start Menu launchable .exe apps. Beta · scaffolded · untested on real hardware · maintainer wanted.",
+  "version": "0.2.0",
+  "description": "Turn local web projects into Windows Start Menu launchable .exe apps. Beta · first real-hardware fixes landed · maintainer wanted.",
   "author": {
     "name": "Christian Katzmann",
     "url": "https://github.com/Christian-Katzmann"
