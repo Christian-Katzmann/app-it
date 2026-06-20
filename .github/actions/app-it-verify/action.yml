@@ -1,0 +1,83 @@
+name: "app-it verify"
+description: >-
+  The "app-it compatible" gate: run a generated launcher's
+  verify --strict --json and fail the job unless status is pass.
+branding:
+  icon: check-circle
+  color: green
+
+# Published, referenceable composite action. A consumer repo that app-it has
+# been run on references it directly — no copy-paste:
+#
+#   - uses: Christian-Katzmann/app-it/.github/actions/app-it-verify@v0.2.0
+#
+# It runs the launcher's own scripts/desktop-verify.sh --strict --json and
+# asserts the versioned verify contract (references/verification.md):
+#   tool == "app-it.desktop-verify", schema_version understood, status == pass.
+# Requires a macOS runner (runs-on: macos-*) — it builds the real .app bundle.
+
+inputs:
+  working-directory:
+    description: >-
+      Repo root that contains scripts/desktop-verify.sh and
+      scripts/app-it.config.json (a project app-it has been run on).
+    required: false
+    default: "."
+  app:
+    description: "App slug or name to verify. Defaults to the first app in the manifest."
+    required: false
+    default: ""
+  build:
+    description: >-
+      Build the .app bundle before verifying (desktop-verify --build).
+      GitHub-hosted runners need this — desktop/ is gitignored.
+    required: false
+    default: "true"
+  install:
+    description: >-
+      Install the bundle before verifying (desktop-verify --install).
+      Needed for a clean, warning-free strict pass.
+    required: false
+    default: "true"
+  schema-version:
+    description: >-
+      Top-level verify JSON contract version this gate understands.
+      Bump only for a breaking contract change.
+    required: false
+    default: "1"
+
+runs:
+  using: composite
+  steps:
+    - name: Run app-it verify --strict --json
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        APP_IT_GATE_APP: ${{ inputs.app }}
+        APP_IT_GATE_BUILD: ${{ inputs.build }}
+        APP_IT_GATE_INSTALL: ${{ inputs.install }}
+        APP_IT_GATE_SCHEMA: ${{ inputs.schema-version }}
+        APP_IT_GATE_ASSERT: ${{ github.action_path }}/assert_contract.py
+      run: |
+        set -uo pipefail
+        verify="./scripts/desktop-verify.sh"
+        if [ ! -x "$verify" ]; then
+          echo "::error::app-it compatible gate: $verify not found or not executable under $(pwd)."
+          echo "::error::Run this action against a repo app-it has been run on (scripts/ vendored, scripts/app-it.config.json present)."
+          exit 1
+        fi
+        flags=( --strict --json )
+        [ "$APP_IT_GATE_INSTALL" = "true" ] && flags=( --install "${flags[@]}" )
+        [ "$APP_IT_GATE_BUILD" = "true" ]   && flags=( --build "${flags[@]}" )
+        out="$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/app-it-verify.XXXXXX")"
+        # --strict exits non-zero on warn/fail; capture the JSON regardless and
+        # let the contract assertion produce the authoritative pass/fail verdict.
+        if [ -n "$APP_IT_GATE_APP" ]; then
+          "$verify" "${flags[@]}" "$APP_IT_GATE_APP" > "$out" || true
+        else
+          "$verify" "${flags[@]}" > "$out" || true
+        fi
+        echo "::group::app-it verify --json"
+        cat "$out"
+        echo "::endgroup::"
+        python3 "$APP_IT_GATE_ASSERT" "$out" "$APP_IT_GATE_SCHEMA"

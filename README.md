@@ -1,5 +1,7 @@
 # app-it
 
+[![app-it compatible](https://github.com/Christian-Katzmann/app-it/actions/workflows/app-it-compatible.yml/badge.svg)](docs/APP-IT-COMPATIBLE.md)
+
 Turn a local web project — or any hosted web app — into a macOS Dock-launchable `.app` bundle — a native window, its own Dock icon, and clean start/stop — **without Electron, Tauri, or a rewrite.**
 
 > **Unofficial community project** — not affiliated with, endorsed by, or sponsored by Anthropic or OpenAI. "Claude Code" and "Codex" are their respective owners' marks, named here only to say which assistants app-it plugs into. This is an independent open-source tool built by one developer.
@@ -126,6 +128,29 @@ such as browser storage or OAuth callbacks.
 ## Safety model
 
 `app-it` only makes additive, reversible changes. It will not rewrite product logic, add runtime dependencies, require a terminal window to stay open, or assume an already-running dev server. It may start and stop local dev-server processes during verification. It never collects telemetry, sends project data anywhere, or handles secrets. See [SECURITY.md](SECURITY.md).
+
+## app-it compatible
+
+`app-it` is the **verified last mile for AI-built local software** — and that
+last mile is checkable. A repo is *app-it compatible* when it has an
+`app-it.config.json` manifest and `app-it verify --strict` passes: not "the
+build script ran", but the app builds, launches, serves on its port, owns its
+own process, and tears down cleanly. The badge above is that gate, dogfooded on
+this repo.
+
+The norm — for **any** agent, Claude Code or Codex or otherwise:
+
+> **Don't declare a local app done until `app-it verify --strict` passes.**
+
+`verify --json` is a [stable, versioned contract](plugins/app-it/skills/app-it/references/verification.md),
+and this repo ships a reusable GitHub Action so your CI can assert it:
+
+```yaml
+- uses: Christian-Katzmann/app-it/.github/actions/app-it-verify@v0.2.0
+```
+
+The full definition, the JSON gate, the Action's inputs, and the badge snippet
+live in [docs/APP-IT-COMPATIBLE.md](docs/APP-IT-COMPATIBLE.md).
 
 ## Validate this repo
 

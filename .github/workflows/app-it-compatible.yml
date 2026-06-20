@@ -1,0 +1,39 @@
+name: app-it compatible
+
+# The "app-it compatible" gate, dogfooded. This workflow assembles a real
+# generated launcher from a fixture and runs the published verify Action
+# (.github/actions/app-it-verify) against it — proving the Action that backs the
+# "app-it compatible" badge actually goes green end-to-end: build → install →
+# headless smoke → doctor → strict pass. The badge in README.md points at this
+# workflow's status. See docs/APP-IT-COMPATIBLE.md for the contract.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+# Least privilege: the gate only reads the tree and builds a throwaway bundle.
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: macos-latest
+    steps:
+      # Pinned to a commit SHA (supply-chain hygiene); comment tracks the tag.
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Assemble a generated launcher from the vite-basic fixture
+        run: |
+          ./scripts/assemble-fixture-launcher.sh vite-basic "${{ runner.temp }}/app-it-compatible-demo"
+          # Build host-arch only — narrows desktop-build's default universal
+          # build so an arm runner never cross-compiles x86_64 (the test-fixtures
+          # lane does the same). Propagates into the composite action's steps.
+          echo "APP_IT_SWIFT_ARCHS=$(uname -m)" >> "$GITHUB_ENV"
+
+      - name: app-it verify --strict --json (the compatibility gate)
+        uses: ./.github/actions/app-it-verify
+        with:
+          working-directory: ${{ runner.temp }}/app-it-compatible-demo
+          build: "true"
+          install: "true"

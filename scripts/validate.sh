@@ -39,7 +39,14 @@ require_file "plugins/app-it/skills/app-it/templates/desktop-upgrade.sh"
 require_file "plugins/app-it/skills/app-it/templates/app-it"
 require_file "scripts/coverage.sh"
 require_file "scripts/plugin-eval-score.sh"
+require_file "scripts/assemble-fixture-launcher.sh"
 require_file "README.md"
+
+# --- "app-it compatible" standard: gate Action, self-test workflow, contract --
+require_file ".github/actions/app-it-verify/action.yml"
+require_file ".github/actions/app-it-verify/assert_contract.py"
+require_file ".github/workflows/app-it-compatible.yml"
+require_file "docs/APP-IT-COMPATIBLE.md"
 require_file "PRIVACY.md"
 require_file "TERMS.md"
 require_file "LICENSE"
@@ -151,6 +158,7 @@ for file in install.sh \
   scripts/test-fixtures.sh \
   scripts/coverage.sh \
   scripts/plugin-eval-score.sh \
+  scripts/assemble-fixture-launcher.sh \
   plugins/app-it/skills/app-it/templates/*.sh \
   plugins/app-it/skills/app-it/templates/app-it \
   plugins/app-it-static/skills/app-it-static/templates/*.sh; do
@@ -170,6 +178,10 @@ fi
 # cache py_compile leaves behind so it never shows up as an untracked artifact.
 python3 -m py_compile plugins/app-it-static/skills/app-it-static/templates/static-server.py
 rm -rf plugins/app-it-static/skills/app-it-static/templates/__pycache__
+
+# Contract-assertion helper for the "app-it compatible" gate Action.
+python3 -m py_compile .github/actions/app-it-verify/assert_contract.py
+rm -rf .github/actions/app-it-verify/__pycache__
 
 # Score-visible coverage evidence. This runs quick fixture inspections plus
 # static-server.py unit tests, then refreshes coverage-summary.json artifacts
@@ -242,6 +254,8 @@ fi
 require_text README.md 'desktop:doctor'
 require_text README.md 'desktop:verify'
 require_text README.md 'port_mode: "fixed"'
+require_text README.md 'app-it compatible'
+require_text docs/APP-IT-COMPATIBLE.md 'app-it verify --strict'
 require_text plugins/app-it/skills/app-it/templates/desktop-launcher.md.template './scripts/desktop-doctor.sh --json'
 require_text plugins/app-it/skills/app-it/templates/desktop-launcher.md.template './scripts/desktop-verify.sh --json'
 require_text plugins/app-it/skills/app-it/templates/desktop-launcher.md.template 'runtime.json'
