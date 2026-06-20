@@ -595,6 +595,24 @@ has "Cmd+Q wrapper keeps legacy listener proof explicit" "$WRAPPER_SRC" "Legacy 
 lacks "Cmd+Q wrapper has no raw shell port sweep" "$WRAPPER_SRC" 'for q in $('
 
 # =============================================================================
+section "windows cleanup ownership source guards (beta — static, runs on macOS)"
+# The .ps1 / .cs can't execute on macOS; the windows-latest CI lane runs the
+# behavioral Pester suite (plugins/app-it-windows/tests/desktop-quit.Tests.ps1).
+# These static guards run HERE so a macOS-only change can't silently regress the
+# Windows quit back to the ownership-blind port sweep this hardening removed.
+WIN_QUIT_SRC="$(cat "$REPO/plugins/app-it-windows/skills/app-it-windows/templates/desktop-quit.ps1")"
+WIN_DEVSERVER_SRC="$(cat "$REPO/plugins/app-it-windows/skills/app-it-windows/templates/wrapper-windows/DevServer.cs")"
+WIN_EDGE_SRC="$(cat "$REPO/plugins/app-it-windows/skills/app-it-windows/templates/run-template-edge.ps1")"
+has "Windows quit proves PID identity before stopping" "$WIN_QUIT_SRC" "Test-ProcessIdentityMatch"
+has "Windows quit limits listener cleanup to the recorded tree" "$WIN_QUIT_SRC" "Get-OwnedListener"
+has "Windows quit keeps the legacy listener proof explicit" "$WIN_QUIT_SRC" "Legacy state (no identity file)"
+lacks "Windows quit has no ownership-blind port sweep (Invoke-PortSweep)" "$WIN_QUIT_SRC" "Invoke-PortSweep"
+lacks "Windows quit has no ownership-blind port sweep (Get-PortOwner)" "$WIN_QUIT_SRC" "Get-PortOwner"
+has "Windows host records server.identity at spawn" "$WIN_DEVSERVER_SRC" "server.identity"
+has "Windows host identity is an invariant FILETIME" "$WIN_DEVSERVER_SRC" "ToFileTimeUtc"
+has "Windows Edge fallback records server.identity at spawn" "$WIN_EDGE_SRC" "server.identity"
+
+# =============================================================================
 section "placeholder-icon-gen.sh emits a valid SVG (no rasterizer needed)"
 ICONTMP="$WORK/iconcheck"; mkdir -p "$ICONTMP"
 APP_NAME="Probe App" APP_SLUG="probe-app" APP_IT_PROJECT_ROOT="$ICONTMP" \

@@ -34,7 +34,8 @@ public sealed class HostConfig
 
     /// %LOCALAPPDATA%\app-it\<slug>\ — per-app state/log namespace, the Windows
     /// analog of macOS's ~/Library/Application Support/app-it/<slug>/. Holds
-    /// server.pid / server.port (written when the server starts).
+    /// server.pid / server.port / server.identity (written when the server
+    /// starts; the identity token lets desktop-quit.ps1 prove ownership).
     public string StateDir => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "app-it", Slug);

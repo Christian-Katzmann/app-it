@@ -44,6 +44,8 @@ New-Item -ItemType Directory -Force -Path $StateDir, $LogDir | Out-Null
 $ServerLog = Join-Path $LogDir 'server.log'
 $PidFile   = Join-Path $StateDir 'server.pid'
 $PortFile  = Join-Path $StateDir 'server.port'
+# Ownership token re-checked by desktop-quit.ps1 (mirrors macOS server.identity).
+$IdFile    = Join-Path $StateDir 'server.identity'
 # NB: not $Profile — that's a PowerShell automatic variable. This is the
 # WebView2 user-data dir, kept identical to desktop-quit.ps1's match key.
 $ProfileDir = Join-Path $StateDir 'WebView2'
@@ -108,7 +110,7 @@ function Test-PortFree {
 if (Test-Path $PidFile) {
     $recorded = (Get-Content -Raw $PidFile).Trim()
     if (-not $recorded -or -not (Get-Process -Id $recorded -ErrorAction SilentlyContinue)) {
-        Remove-Item -Force -ErrorAction SilentlyContinue $PidFile, $PortFile
+        Remove-Item -Force -ErrorAction SilentlyContinue $PidFile, $PortFile, $IdFile
     }
 }
 
@@ -194,6 +196,16 @@ $server = [System.Diagnostics.Process]::Start($psi)
 
 Set-Content -Path $PidFile  -Value $server.Id
 Set-Content -Path $PortFile -Value $chosenPort
+# Ownership token: cmd.exe's creation time as an invariant UTC FILETIME, the
+# Windows reading of macOS run-template.sh's server.identity (ps -o lstart=).
+# desktop-quit.ps1 re-reads (Get-Process).StartTime and only stops the recorded
+# PID when this still matches, so a recycled/foreign PID survives. Best-effort:
+# if StartTime is unreadable, quit falls back to the tree-owns-listener proof.
+try {
+    Set-Content -Path $IdFile -Value $server.StartTime.ToFileTimeUtc().ToString([System.Globalization.CultureInfo]::InvariantCulture)
+} catch {
+    Remove-Item -Force -ErrorAction SilentlyContinue $IdFile
+}
 
 $url = "http://127.0.0.1:$chosenPort"
 
@@ -218,7 +230,7 @@ if ($ready) {
 }
 if (-not $ready) {
     $tail = if (Test-Path $ServerLog) { (Get-Content -Tail 40 $ServerLog) -join "`n" } else { '(no log)' }
-    Remove-Item -Force -ErrorAction SilentlyContinue $PidFile, $PortFile
+    Remove-Item -Force -ErrorAction SilentlyContinue $PidFile, $PortFile, $IdFile
     [System.Windows.Forms.MessageBox]::Show(
         "The dev server did not bind to $url within 60s.`n`nLast log lines:`n$tail",
         "$AppName failed to start") | Out-Null
@@ -249,4 +261,4 @@ $edge = Start-Process -FilePath $edgeCandidates[0] `
 # is open. When Edge closes, the script exits, the job handle closes, and
 # KILL_ON_JOB_CLOSE reaps the dev-server tree. Orphan-safe; not warm-kept.
 $edge.WaitForExit()
-Remove-Item -Force -ErrorAction SilentlyContinue $PidFile, $PortFile
+Remove-Item -Force -ErrorAction SilentlyContinue $PidFile, $PortFile, $IdFile

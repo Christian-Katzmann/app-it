@@ -18,6 +18,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -60,7 +61,8 @@ public sealed class DevServer : IDisposable
     /// Spawns `startCommand` through cmd.exe (so PATH shims like pnpm.cmd /
     /// npm.cmd resolve), with PORT + HOST in the environment, bound to
     /// workingDir, with no visible console window. Records server.pid /
-    /// server.port under stateDir, mirroring macOS run-template.sh.
+    /// server.port / server.identity under stateDir, mirroring macOS
+    /// run-template.sh.
     public void Start(string startCommand, string workingDir, int port, string stateDir)
     {
         var psi = new ProcessStartInfo
@@ -95,6 +97,24 @@ public sealed class DevServer : IDisposable
         Directory.CreateDirectory(stateDir);
         File.WriteAllText(Path.Combine(stateDir, "server.pid"), _process.Id.ToString());
         File.WriteAllText(Path.Combine(stateDir, "server.port"), port.ToString());
+
+        // Ownership token: cmd.exe's creation time as an invariant UTC FILETIME,
+        // the Windows reading of macOS run-template.sh's server.identity
+        // (ps -o lstart=). desktop-quit.ps1 re-reads (Get-Process).StartTime and
+        // refuses to stop the recorded PID unless this still matches, so a
+        // recycled/foreign PID on the recorded port is left alone. Best-effort:
+        // if StartTime is momentarily unreadable, quit falls back to the
+        // tree-owns-listener proof, so a write failure here is non-fatal.
+        try
+        {
+            File.WriteAllText(
+                Path.Combine(stateDir, "server.identity"),
+                _process.StartTime.ToFileTimeUtc().ToString(CultureInfo.InvariantCulture));
+        }
+        catch (Exception)
+        {
+            // Non-fatal — see above.
+        }
     }
 
     public void Dispose()
