@@ -55,6 +55,68 @@ URLs as proof; auth-protected Artifacts may correctly redirect.
 For A3 multi-server apps, Cmd+Q must also free the backend runtime port read
 from `backend.port`.
 
+## The verify JSON contract
+
+`desktop-verify.sh --json` (and `desktop-doctor.sh --json`) emit a **stable,
+versioned public contract**. This is the thing an external "app-it compatible"
+badge or CI gate keys off, so it is treated as an API, not an internal dump.
+
+```jsonc
+{
+  "schema_version": 1,                 // contract version of THIS JSON output
+  "tool": "app-it.desktop-verify",     // or "app-it.desktop-doctor"
+  "status": "pass",                    // verify only: pass | warn | fail
+  "manifest": {                        // provenance stamped into app-it.config.json
+    "schema_version": 1,               //   manifest shape version (int, or null if unstamped)
+    "generator_version": "0.2.0",      //   app-it release that generated the manifest
+    "template_version": "2026.06"      //   vendored-template vintage (calendar version)
+  },
+  "app":     { "name", "slug", "bundle_id", "version" },
+  "ports":   { "mode", "preferred", "runtime", "backend_preferred", "backend_runtime" },
+  "counts":  { "ok", "warn", "fail", "info", "manual", "skip" },
+  "checks":  [ { "section", "status", "message" }, ... ]
+  // ...plus tool-specific blocks: verify adds subject/artifacts/doctor; doctor adds state/recommended_action
+}
+```
+
+### Field meanings
+
+| Field | Meaning |
+| --- | --- |
+| `schema_version` (top level) | Version of the JSON **output contract** itself. `1` today. A consumer asserts on this before trusting the rest. |
+| `tool` | Which tool emitted it: `app-it.desktop-verify` or `app-it.desktop-doctor`. |
+| `status` | verify only. `pass` (no warn/fail), `warn`, or `fail`. A passing `--strict` run is the "done" signal. |
+| `manifest.schema_version` | Shape version of the `app-it.config.json` manifest. Integer, or `null` for an older config generated before stamping existed. |
+| `manifest.generator_version` | The app-it release (semver) that generated the manifest. Provenance only. |
+| `manifest.template_version` | Calendar version (e.g. `2026.06`) of the templates the app was vendored from. `doctor`'s drift check and `upgrade` compare it against the current templates. `null` if unstamped. |
+| `counts` | Tally of check outcomes. `status: pass` ⇔ `counts.fail == 0 && counts.warn == 0`. |
+| `checks` | Ordered list; each has a `section`, a `status` (`ok`/`warn`/`fail`/`info`/`manual`/`skip`), and a human `message`. |
+
+### Versioning the two `schema_version` fields
+
+There are deliberately two, at different levels, and they version different things:
+
+- **Top-level `schema_version`** versions the *output contract* — the JSON
+  shape above. **Additive changes are safe and do NOT bump it**: adding a new
+  field, a new `manifest.*` key, or a new check section is backward-compatible,
+  so a consumer pinned to `schema_version: 1` keeps working. **A breaking change
+  — renaming/removing a field, changing a type or the meaning of `status` —
+  bumps it to `2`.** Consumers should assert `schema_version` is a version they
+  understand and otherwise read fields defensively.
+- **`manifest.schema_version`** versions the *config file* shape and follows the
+  same additive-safe / breaking-bumps rule, independently.
+
+### Stability promise (what "app-it compatible" relies on)
+
+1. For a given top-level `schema_version`, the fields in the table above are
+   present and keep their types and meaning.
+2. `status`, `tool`, `manifest`, `counts`, and `checks[].status` are the load-
+   bearing keys. A passing gate is `tool == "app-it.desktop-verify"`,
+   `schema_version` understood, and `status == "pass"` under `--strict`.
+3. New keys may appear at any level without a version bump — ignore unknown keys.
+4. Removing or repurposing any key in the table is a breaking change and bumps
+   the relevant `schema_version`.
+
 ## Human Checks
 
 Mark as needs human unless the environment has a usable display:

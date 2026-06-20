@@ -52,6 +52,9 @@ Use `scripts/app-it.config.json`:
 
 ```json
 {
+  "schema_version": 1,
+  "generator_version": "0.2.0",
+  "template_version": "2026.06",
   "apps": [
     {
       "name": "My App",
@@ -67,6 +70,20 @@ Use `scripts/app-it.config.json`:
   ]
 }
 ```
+
+The three top-level fields stamp the manifest's provenance and are written at
+generation time (the per-app `version` is unrelated — it's the marketing
+version):
+
+- `schema_version` (int) — shape version of this manifest. `1` today; additive
+  changes keep it, breaking changes bump it.
+- `generator_version` (semver) — the app-it release that generated the config.
+- `template_version` (calendar, e.g. `"2026.06"`) — the vendored-template
+  vintage. `desktop-doctor`'s drift check and `upgrade` compare it against the
+  current templates to decide whether a re-vendor is due.
+
+These same stamps are surfaced under `manifest` in `desktop-verify`/`desktop-doctor`
+`--json` output — see `references/verification.md` for the versioned contract.
 
 For A3, add `backend_port` and `backend_start_command`. For Strategy E
 URL-only apps, set `external_url` (or alias `artifact_url` / `url`) and leave

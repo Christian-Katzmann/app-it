@@ -151,6 +151,23 @@ PY
 
 [ "${#APPS[@]}" -gt 0 ] || die "no apps configured in scripts/app-it.config.json." 2
 
+# --- Manifest-level version stamps (config-wide, not per-app) ----------------
+# Identify which app-it vintage generated the manifest. The --json output
+# surfaces these under "manifest" as part of the documented verify contract
+# (references/verification.md). Empty when an older, unstamped config is read.
+CFG_SCHEMA_VERSION=""; CFG_GENERATOR_VERSION=""; CFG_TEMPLATE_VERSION=""
+IFS=$'\t' read -r CFG_SCHEMA_VERSION CFG_GENERATOR_VERSION CFG_TEMPLATE_VERSION < <(/usr/bin/python3 - "$CONFIG_FILE" <<'PY'
+import json, sys
+try:
+    cfg = json.load(open(sys.argv[1]))
+except Exception:
+    cfg = {}
+def text(v):
+    return "" if v is None else str(v)
+print("\t".join(text(cfg.get(k)) for k in ("schema_version", "generator_version", "template_version")))
+PY
+)
+
 # --- Pick the one app to diagnose --------------------------------------------
 SELECTED=""
 if [ -n "$SELECTOR" ]; then
@@ -624,7 +641,10 @@ fi
 
 # =============================================================================
 section "Template drift"
-# No version stamp exists; feature-probe installed artifacts against templates.
+# Feature-probe installed artifacts against the current templates. This stays
+# even though the manifest now carries template_version (the verify contract):
+# probing still catches legacy, unstamped builds, and an `upgrade` step can layer
+# the template_version comparison on top of it.
 # Keep `grep -qboa` for wrapper markers because older builds hid them from strings.
 WRAPPER_SRC="$SCRIPT_DIR/wrapper.swift"
 if [ "$IS_URL_ONLY" = "1" ]; then
@@ -773,6 +793,9 @@ if [ "$JSON_MODE" = "1" ]; then
     DOCTOR_APP_SLUG="$APP_SLUG" \
     DOCTOR_BUNDLE_ID="$BUNDLE_ID" \
     DOCTOR_VERSION="$VERSION" \
+    DOCTOR_MANIFEST_SCHEMA="$CFG_SCHEMA_VERSION" \
+    DOCTOR_MANIFEST_GENERATOR="$CFG_GENERATOR_VERSION" \
+    DOCTOR_MANIFEST_TEMPLATE="$CFG_TEMPLATE_VERSION" \
     DOCTOR_PROJECT_ROOT="$ROOT" \
     DOCTOR_EXTERNAL_URL="$EXTERNAL_URL" \
     DOCTOR_IS_URL_ONLY="$IS_URL_ONLY" \
@@ -807,6 +830,15 @@ import sys
 def empty_to_none(value):
     return value if value else None
 
+def manifest_schema_version():
+    raw = os.environ.get("DOCTOR_MANIFEST_SCHEMA", "")
+    if raw == "":
+        return None
+    try:
+        return int(raw)
+    except ValueError:
+        return raw
+
 checks = []
 with open(sys.argv[1], encoding="utf-8") as handle:
     for line in handle:
@@ -820,6 +852,11 @@ with open(sys.argv[1], encoding="utf-8") as handle:
 payload = {
     "schema_version": 1,
     "tool": "app-it.desktop-doctor",
+    "manifest": {
+        "schema_version": manifest_schema_version(),
+        "generator_version": empty_to_none(os.environ["DOCTOR_MANIFEST_GENERATOR"]),
+        "template_version": empty_to_none(os.environ["DOCTOR_MANIFEST_TEMPLATE"]),
+    },
     "app": {
         "name": os.environ["DOCTOR_APP_NAME"],
         "slug": os.environ["DOCTOR_APP_SLUG"],

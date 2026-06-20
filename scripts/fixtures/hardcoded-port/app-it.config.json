@@ -1,5 +1,8 @@
 {
   "_comment": "Inspect-only fixture (not built). Its job is to prove inspect.sh keeps warning about hardcoded port literals — the most common reason an appified launcher silently ignores its chosen port. This config is not exercised by the suite.",
+  "schema_version": 1,
+  "generator_version": "0.2.0",
+  "template_version": "2026.06",
   "apps": [
     {
       "name": "Hardcoded Port",

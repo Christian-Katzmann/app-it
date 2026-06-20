@@ -1,5 +1,8 @@
 {
   "_comment": "Build-assert fixture (no runtime run). start_command honors the PORT env (Next-style); the suite only proves the bundle assembles for a Next-shaped project. Single-server runtime is covered by vite-basic.",
+  "schema_version": 1,
+  "generator_version": "0.2.0",
+  "template_version": "2026.06",
   "apps": [
     {
       "name": "Next Basic",

@@ -1,5 +1,10 @@
 {
-  "_comment": "Single source of truth for desktop-build.sh and desktop-quit.sh. Copy this file to scripts/app-it.config.json and customize. Both scripts read it; APPS-table drift (where they had separate copies) is structurally impossible.",
+  "_comment": "Single source of truth for desktop-build.sh and desktop-quit.sh. Copy this file to scripts/app-it.config.json and customize. Both scripts read it; APPS-table drift (where they had separate copies) is structurally impossible. The top-level schema_version/generator_version/template_version stamps identify which app-it vintage generated this manifest — see _manifest_fields and references/verification.md (the versioned verify contract).",
+  "_manifest_fields": {
+    "schema_version": "Integer. Version of THIS manifest's shape. 1 today. Additive changes (new optional keys) keep it at 1; a breaking change to existing keys bumps it. Tools that read the config gate on this.",
+    "generator_version": "The app-it release that generated this manifest (semver, e.g. '0.2.0'). Stamped at generation time; informational provenance.",
+    "template_version": "Calendar version of the vendored templates this app was generated from (e.g. '2026.06'). desktop-doctor's drift check and `upgrade` compare this against the current templates to decide whether a re-vendor is due. Bump it when the shipped templates change in a way that warrants re-vendoring."
+  },
   "_fields": {
     "name": "Display name. Non-ASCII OK (e.g. 'Momó Studio'). The build script will substitute this verbatim into Info.plist's CFBundleName and the bundle's directory name.",
     "slug": "File-safe slug. Lowercase, hyphens. Used for assets/<slug>-icon.png plus namespaced app-it runtime and log paths.",
@@ -13,6 +18,9 @@
     "backend_start_command": "Optional. The command to start the backend service. Must honor API_PORT env var. The frontend dev server (e.g. Vite) must proxy to http://localhost:$API_PORT (config edits required — see SKILL.md A3.2 section).",
     "external_url": "Optional. When set, desktop-build.sh creates a URL-only launcher and ignores port/start_command/backend fields. Use this for published/shared Claude Artifact URLs so each user signs into Claude with their own plan. Aliases accepted: artifact_url, url."
   },
+  "schema_version": 1,
+  "generator_version": "0.2.0",
+  "template_version": "2026.06",
   "apps": [
     {
       "name": "My App",

@@ -252,6 +252,9 @@ from pathlib import Path
 payload = json.loads(Path(sys.argv[1]).read_text())
 assert payload["schema_version"] == 1
 assert payload["tool"] == "app-it.desktop-doctor"
+assert payload["manifest"]["schema_version"] == 1
+assert payload["manifest"]["generator_version"] == "0.2.0"
+assert payload["manifest"]["template_version"] == "2026.06"
 assert payload["app"]["slug"] == "vite-basic"
 assert isinstance(payload["counts"]["ok"], int)
 assert isinstance(payload["checks"], list) and payload["checks"]
@@ -273,6 +276,9 @@ from pathlib import Path
 payload = json.loads(Path(sys.argv[1]).read_text())
 assert payload["schema_version"] == 1
 assert payload["tool"] == "app-it.desktop-verify"
+assert payload["manifest"]["schema_version"] == 1
+assert payload["manifest"]["generator_version"] == "0.2.0"
+assert payload["manifest"]["template_version"] == "2026.06"
 assert payload["app"]["slug"] == "vite-basic"
 assert payload["ports"]["runtime"]
 assert payload["doctor"]["counts"]["ok"] >= 1

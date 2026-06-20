@@ -159,6 +159,23 @@ PY
 
 [ "${#APPS[@]}" -gt 0 ] || die "no apps configured in scripts/app-it.config.json." 2
 
+# --- Manifest-level version stamps (config-wide, not per-app) ----------------
+# Identify which app-it vintage generated the manifest. The --json output
+# surfaces these under "manifest" as part of the documented verify contract
+# (references/verification.md). Empty when an older, unstamped config is read.
+CFG_SCHEMA_VERSION=""; CFG_GENERATOR_VERSION=""; CFG_TEMPLATE_VERSION=""
+IFS=$'\t' read -r CFG_SCHEMA_VERSION CFG_GENERATOR_VERSION CFG_TEMPLATE_VERSION < <(/usr/bin/python3 - "$CONFIG_FILE" <<'PY'
+import json, sys
+try:
+    cfg = json.load(open(sys.argv[1]))
+except Exception:
+    cfg = {}
+def text(v):
+    return "" if v is None else str(v)
+print("\t".join(text(cfg.get(k)) for k in ("schema_version", "generator_version", "template_version")))
+PY
+)
+
 SELECTED=""
 if [ -n "$SELECTOR" ]; then
     sel="$(lc "$SELECTOR")"
@@ -405,6 +422,9 @@ if [ "$JSON_MODE" = "1" ]; then
     VERIFY_APP_SLUG="$APP_SLUG" \
     VERIFY_BUNDLE_ID="$BUNDLE_ID" \
     VERIFY_VERSION="$VERSION" \
+    VERIFY_MANIFEST_SCHEMA="$CFG_SCHEMA_VERSION" \
+    VERIFY_MANIFEST_GENERATOR="$CFG_GENERATOR_VERSION" \
+    VERIFY_MANIFEST_TEMPLATE="$CFG_TEMPLATE_VERSION" \
     VERIFY_PROJECT_ROOT="$ROOT" \
     VERIFY_STATUS="$VERIFY_STATUS" \
     VERIFY_SUBJECT="$APP_UNDER_TEST" \
@@ -443,6 +463,15 @@ import sys
 def empty_to_none(value):
     return value if value else None
 
+def manifest_schema_version():
+    raw = os.environ.get("VERIFY_MANIFEST_SCHEMA", "")
+    if raw == "":
+        return None
+    try:
+        return int(raw)
+    except ValueError:
+        return raw
+
 checks = []
 with open(sys.argv[1], encoding="utf-8") as handle:
     for line in handle:
@@ -453,6 +482,11 @@ payload = {
     "schema_version": 1,
     "tool": "app-it.desktop-verify",
     "status": os.environ["VERIFY_STATUS"],
+    "manifest": {
+        "schema_version": manifest_schema_version(),
+        "generator_version": empty_to_none(os.environ["VERIFY_MANIFEST_GENERATOR"]),
+        "template_version": empty_to_none(os.environ["VERIFY_MANIFEST_TEMPLATE"]),
+    },
     "app": {
         "name": os.environ["VERIFY_APP_NAME"],
         "slug": os.environ["VERIFY_APP_SLUG"],
