@@ -425,6 +425,16 @@ build
 assert_bundle "Vite React" vite-react com.user.vite-react swift
 
 # =============================================================================
+section "sveltekit-basic – SvelteKit detection + bundle assembly"
+setup_proj sveltekit-basic app-it sveltekit-basic
+INSPECT="$(APP_IT_PROJECT_ROOT="$PROJ" bash "$PROJ/scripts/inspect.sh" 2>&1 || true)"
+has  "inspect detects svelte.config.js" "$INSPECT" "svelte.config.js"
+has  "inspect lists the dev script"   "$INSPECT" "vite dev"
+has  "inspect emits the SvelteKit recipe" "$INSPECT" "SvelteKit"
+build
+assert_bundle "SvelteKit Basic" sveltekit-basic com.user.sveltekit-basic swift
+
+# =============================================================================
 section "claude-artifact-url — URL-only hosted Artifact bundle"
 setup_proj claude-artifact-url app-it claude-artifact
 build
