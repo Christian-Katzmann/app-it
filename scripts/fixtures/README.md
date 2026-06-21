@@ -34,6 +34,9 @@ For each fixture, `test-fixtures.sh`:
 | `vite-basic` | Vite detection; single-server build → launch → port → ownership → warm reattach → teardown; PNG → `.icns` icon round-trip |
 | `fixed-port` | `port_mode: "fixed"` uses the exact preferred origin, refuses busy-port fallback with a clear launcher report, and labels foreign preferred-port listeners without touching them |
 | `next-basic` | Next detection (PORT-env, no `--port`); bundle assembles for a Next shape |
+| `vite-react` | Vite + React detection (the react-specific recipe branch, distinct from `vite-basic`'s plain-Vite shape); bundle assembles for a Vite + React shape |
+| `sveltekit-basic` | SvelteKit detection (`svelte.config` + `@sveltejs/kit`/`vite-plugin-svelte` deps); bundle assembles for a SvelteKit shape |
+| `astro-basic` | Astro detection (`astro.config` + `astro` dep, port 4321); bundle assembles for an Astro shape |
 | `static-export` | app-it-static: static-export detection + serving a prebuilt `out/` with the real stdlib `static-server.py` |
 | `vite-express` | A3.2 multiserver template selected; dual-port + `API_PORT`; both ports owned and freed |
 | `deep-tree` | the descendant-walk reaches a **gen-2** listener (bash → node → node, like real `npm`/`pnpm` dev) — so warm-reattach and `desktop:doctor` ownership work for real frameworks, not just gen-1 stubs |
