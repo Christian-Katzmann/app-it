@@ -435,6 +435,16 @@ build
 assert_bundle "SvelteKit Basic" sveltekit-basic com.user.sveltekit-basic swift
 
 # =============================================================================
+section "astro-basic – Astro detection + bundle assembly"
+setup_proj astro-basic app-it astro-basic
+INSPECT="$(APP_IT_PROJECT_ROOT="$PROJ" bash "$PROJ/scripts/inspect.sh" 2>&1 || true)"
+has  "inspect detects astro.config.mjs" "$INSPECT" "astro.config.mjs"
+has  "inspect lists the dev script"   "$INSPECT" "astro dev"
+has  "inspect emits the Astro recipe" "$INSPECT" "Astro"
+build
+assert_bundle "Astro Basic" astro-basic com.user.astro-basic swift
+
+# =============================================================================
 section "claude-artifact-url — URL-only hosted Artifact bundle"
 setup_proj claude-artifact-url app-it claude-artifact
 build
