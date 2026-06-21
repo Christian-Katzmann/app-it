@@ -414,6 +414,17 @@ build
 assert_bundle "Next Basic" next-basic com.user.next-basic swift
 
 # =============================================================================
+section "vite-react – Vite + React detection + bundle assembly"
+setup_proj vite-react app-it vite-react
+INSPECT="$(APP_IT_PROJECT_ROOT="$PROJ" bash "$PROJ/scripts/inspect.sh" 2>&1 || true)"
+has  "inspect detects vite.config.ts" "$INSPECT" "vite.config.ts"
+has  "inspect lists the dev script"   "$INSPECT" "dev"
+has  "inspect emits the Vite + React recipe" "$INSPECT" "Vite + React"
+lacks "inspect emits no hardcoded-port warning" "$INSPECT" "hardcoded port literal"
+build
+assert_bundle "Vite React" vite-react com.user.vite-react swift
+
+# =============================================================================
 section "claude-artifact-url — URL-only hosted Artifact bundle"
 setup_proj claude-artifact-url app-it claude-artifact
 build
