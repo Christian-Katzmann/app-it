@@ -152,7 +152,8 @@ fi
 # caches icon thumbnails per-bundle and Dock caches its render targets
 # independently. killall Dock is harmless (Dock auto-respawns in <1s)
 # but we gate to avoid Dock flicker on routine non-icon rebuilds.
-if [ "$icon_changed" = "1" ]; then
+# Set APP_IT_REFRESH_DOCK=0 during unattended installs or to preserve the Dock.
+if [ "$icon_changed" = "1" ] && [ "${APP_IT_REFRESH_DOCK:-1}" = "1" ]; then
     killall Dock 2>/dev/null || true
     echo "(Refreshed Dock — icon bytes changed.)"
 fi

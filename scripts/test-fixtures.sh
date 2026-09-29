@@ -36,12 +36,14 @@ EXTRA_CLEANUP_PIDS=""
 
 cleanup() {
     [ -n "$EXTRA_CLEANUP_PIDS" ] && kill -TERM $EXTRA_CLEANUP_PIDS 2>/dev/null || true
-    # Stop anything still bound in the fixture port range (belt-and-suspenders;
-    # each fixture also runs desktop:quit inline as part of its test). One ranged
-    # lsof covers the whole window in a single call.
-    local pids
-    pids="$(lsof -ti tcp:"$PORT_LO"-"$PORT_HI" 2>/dev/null || true)"
-    [ -n "$pids" ] && kill -TERM $pids 2>/dev/null || true
+    # Teardown uses the same identity/ownership checks as normal quit. A port
+    # number alone never authorizes stopping a listener, even in the test range.
+    local project
+    for project in "$WORK"/proj-*; do
+        [ -f "$project/scripts/app-it.config.json" ] || continue
+        [ -f "$project/scripts/desktop-quit.sh" ] || continue
+        (cd "$project" && APP_IT_PROJECT_ROOT="$project" bash scripts/desktop-quit.sh) >/dev/null 2>&1 || true
+    done
     rm -rf "$WORK" 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM

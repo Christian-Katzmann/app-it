@@ -90,13 +90,34 @@ def assert_trust_fields(manifest, website_url=ROOT_URL):
     interface = manifest.get("interface")
     assert isinstance(interface, dict), f"{manifest['name']} missing interface object"
     assert interface.get("websiteURL") == website_url, f"{manifest['name']} missing interface.websiteURL"
-    assert interface.get("privacyPolicyURL") == PRIVACY_URL, f"{manifest['name']} missing interface.privacyPolicyURL"
+    if manifest["name"] == "app-it":
+        # Review candidate: do not advertise an unpublished privacy draft.
+        assert "privacyPolicyURL" not in interface
+        assert Path("plugins/app-it/PRIVACY.md").is_file()
+    else:
+        assert interface.get("privacyPolicyURL") == PRIVACY_URL, f"{manifest['name']} missing interface.privacyPolicyURL"
     assert interface.get("termsOfServiceURL") == TERMS_URL, f"{manifest['name']} missing interface.termsOfServiceURL"
 
 # app-it plugin assertions
 assert plugin["name"] == "app-it"
 assert plugin["version"]
 assert plugin["skills"] == "./skills/"
+
+# Portable skills-only package; OpenAI overlay is complete, not merged.
+portable = json.loads(Path("plugins/app-it/plugin.json").read_text())
+assert portable["$schema"] == "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
+for field in ("name", "version", "description", "license"):
+    assert portable[field] == codex_plugin[field] == plugin[field]
+assert portable["extensions"]["com.openai"]["interface"] == codex_plugin["interface"]
+assert "skills" not in portable and "mcpServers" not in portable
+ui = portable["extensions"]["com.openai"]["interface"]
+assert len(ui["shortDescription"]) <= 30
+assert len(ui["defaultPrompt"]) <= 3 and all(len(p) <= 128 for p in ui["defaultPrompt"])
+for field in ("logo", "composerIcon"):
+    path = Path("plugins/app-it") / ui[field]
+    assert path.is_file(), f"missing {field}: {path}"
+    assert path.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+assert Path("plugins/app-it/LICENSE").read_bytes() == Path("LICENSE").read_bytes()
 
 # Marketplace assertions — look up by name so adding more plugins doesn't break this
 market_by_name = {e["name"]: e for e in market["plugins"]}
@@ -230,13 +251,13 @@ done
 
 LOCAL_PATH_PATTERN="/"
 LOCAL_PATH_PATTERN="${LOCAL_PATH_PATTERN}Users/christiankatzmann"
-# campaigns/ and reports/ are excluded: campaign prompts/state legitimately
-# contain absolute paths for unattended local automation.
+# Local reports, campaign state and command logs legitimately contain paths.
 if grep -R "$LOCAL_PATH_PATTERN" . \
   --exclude-dir=.git \
   --exclude-dir=.tmp \
   --exclude-dir=campaigns \
   --exclude-dir=reports \
+  --exclude-dir=work \
   --exclude='validate.sh' \
   --exclude='*.png' >/dev/null; then
   fail "found local absolute path"

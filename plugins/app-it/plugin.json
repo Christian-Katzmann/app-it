@@ -1,0 +1,50 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "app-it",
+  "version": "0.2.0",
+  "description": "Turn local web projects or hosted web URLs into macOS Dock apps on a local agent host.",
+  "author": {
+    "name": "Christian Katzmann",
+    "url": "https://github.com/Christian-Katzmann"
+  },
+  "homepage": "https://github.com/Christian-Katzmann/app-it",
+  "repository": "https://github.com/Christian-Katzmann/app-it",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "claude-code",
+    "skills",
+    "macos",
+    "dock",
+    "app-bundle",
+    "webkit",
+    "local-dev"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "App It",
+        "shortDescription": "Web apps in your macOS Dock",
+        "longDescription": "App It helps a local coding agent create and install a macOS .app that opens a local web project or hosted web URL in a native WebKit window. It uses bundled templates to build the launcher, choose ports, keep local servers warm after window close, and stop only owned servers on quit. Requires a local macOS host, shell and file access, Apple command line tools, Python 3, and the project runtime. Cloud-only ChatGPT, iOS, Windows and Linux execution are not supported. Generated apps are for personal use; distribution and notarization are not included.",
+        "developerName": "Christian Katzmann",
+        "category": "Productivity",
+        "capabilities": [
+          "Read",
+          "Write",
+          "Local"
+        ],
+        "defaultPrompt": [
+          "Make this local web project launchable from my macOS Dock.",
+          "Wrap this hosted web URL in a local macOS app.",
+          "Verify this App It launcher and its server cleanup."
+        ],
+        "websiteURL": "https://github.com/Christian-Katzmann/app-it",
+        "termsOfServiceURL": "https://github.com/Christian-Katzmann/app-it/blob/main/TERMS.md",
+        "brandColor": "#2F6FED",
+        "supportURL": "https://github.com/Christian-Katzmann/app-it/issues",
+        "logo": "./assets/icon.png",
+        "composerIcon": "./assets/icon.png"
+      }
+    }
+  }
+}

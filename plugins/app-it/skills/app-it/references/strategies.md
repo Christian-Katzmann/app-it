@@ -64,7 +64,11 @@ the daemon, at the cost of warm relaunch.
 Use when the app is a built static bundle with no dev server. The runtime points
 at `file://.../index.html` or the static companion skill's server model. If the
 user's goal is a finished build with rebuild snapshots, prefer the
-`app-it-static` companion skill.
+`app-it-static` companion skill if it is already available. That is a separate
+plugin and is not bundled or required for App It. Do not assume it is installed
+or fetch it without authorization. Without it, reuse an existing authorized
+static-serving command with App It's normal launcher templates, or explain the
+missing prerequisite instead of promising a finished-build workflow.
 
 ## A3 Multi-Server Cohabiting App
 

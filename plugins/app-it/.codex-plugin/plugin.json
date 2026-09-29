@@ -1,7 +1,7 @@
 {
   "name": "app-it",
   "version": "0.2.0",
-  "description": "Turn local web projects into macOS Dock-launchable .app bundles for personal daily use.",
+  "description": "Turn local web projects or hosted web URLs into macOS Dock apps on a local agent host.",
   "author": {
     "name": "Christian Katzmann",
     "url": "https://github.com/Christian-Katzmann"
@@ -22,8 +22,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "App It",
-    "shortDescription": "Make local web projects launchable from the macOS Dock.",
-    "longDescription": "App It turns a local web project into a repeatable macOS .app launcher with a native WebKit window, professional app icons, stable port handling, and Dock-friendly install behavior.",
+    "shortDescription": "Web apps in your macOS Dock",
+    "longDescription": "App It helps a local coding agent create and install a macOS .app that opens a local web project or hosted web URL in a native WebKit window. It uses bundled templates to build the launcher, choose ports, keep local servers warm after window close, and stop only owned servers on quit. Requires a local macOS host, shell and file access, Apple command line tools, Python 3, and the project runtime. Cloud-only ChatGPT, iOS, Windows and Linux execution are not supported. Generated apps are for personal use; distribution and notarization are not included.",
     "developerName": "Christian Katzmann",
     "category": "Productivity",
     "capabilities": [
@@ -32,13 +32,15 @@
       "Local"
     ],
     "defaultPrompt": [
-      "Use app-it to make this project launchable from the Dock.",
-      "Give this local app a professional icon and macOS launcher.",
-      "Package this project as a local macOS .app."
+      "Make this local web project launchable from my macOS Dock.",
+      "Wrap this hosted web URL in a local macOS app.",
+      "Verify this App It launcher and its server cleanup."
     ],
     "websiteURL": "https://github.com/Christian-Katzmann/app-it",
-    "privacyPolicyURL": "https://github.com/Christian-Katzmann/app-it/blob/main/PRIVACY.md",
     "termsOfServiceURL": "https://github.com/Christian-Katzmann/app-it/blob/main/TERMS.md",
-    "brandColor": "#2F6FED"
+    "brandColor": "#2F6FED",
+    "supportURL": "https://github.com/Christian-Katzmann/app-it/issues",
+    "logo": "./assets/icon.png",
+    "composerIcon": "./assets/icon.png"
   }
 }
