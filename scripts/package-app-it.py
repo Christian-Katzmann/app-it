@@ -21,7 +21,12 @@ with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         if file.is_symlink():
             raise ValueError(f"package symlink is not allowed: {rel}")
         if file.is_file():
-            archive.write(file, rel.as_posix())
+            entry = zipfile.ZipInfo(rel.as_posix(), date_time=(2026, 9, 30, 0, 0, 0))
+            entry.create_system = 3
+            executable = bool(file.stat().st_mode & 0o111)
+            entry.external_attr = (0o100755 if executable else 0o100644) << 16
+            entry.compress_type = zipfile.ZIP_DEFLATED
+            archive.writestr(entry, file.read_bytes())
 with zipfile.ZipFile(output) as archive:
     assert archive.testzip() is None
     assert "plugin.json" in archive.namelist()
