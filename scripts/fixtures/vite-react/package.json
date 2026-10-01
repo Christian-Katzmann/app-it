@@ -1,0 +1,16 @@
+{
+  "name": "vite-react",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite"
+  },
+  "dependencies": {
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "@vitejs/plugin-react": "^4.3.0"
+  }
+}

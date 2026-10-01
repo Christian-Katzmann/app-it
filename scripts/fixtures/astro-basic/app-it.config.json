@@ -1,0 +1,16 @@
+{
+  "_comment": "Build-assert fixture (no runtime run). Proves Astro detection (port 4321) and that the bundle assembles. Single-server runtime is covered by vite-basic.",
+  "apps": [
+    {
+      "name": "Astro Basic",
+      "slug": "astro-basic",
+      "port": 41120,
+      "start_command": "node stub-server.js --port $PORT",
+      "bundle_id": "com.user.astro-basic",
+      "version": "0.1.0",
+      "polyfill_path": "",
+      "backend_port": null,
+      "backend_start_command": null
+    }
+  ]
+}

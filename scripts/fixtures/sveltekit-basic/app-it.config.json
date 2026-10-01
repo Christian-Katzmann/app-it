@@ -1,0 +1,16 @@
+{
+  "_comment": "Build-assert fixture (no runtime run). Proves SvelteKit detection and that the bundle assembles. Single-server runtime is covered by vite-basic.",
+  "apps": [
+    {
+      "name": "SvelteKit Basic",
+      "slug": "sveltekit-basic",
+      "port": 41110,
+      "start_command": "node stub-server.js --port $PORT",
+      "bundle_id": "com.user.sveltekit-basic",
+      "version": "0.1.0",
+      "polyfill_path": "",
+      "backend_port": null,
+      "backend_start_command": null
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "_comment": "Build-assert fixture (no runtime run). Proves the Vite + React recipe branch (react-specific; vite-basic's plain-Vite shape does not exercise it) and that the bundle assembles. Single-server runtime is covered by vite-basic.",
+  "apps": [
+    {
+      "name": "Vite React",
+      "slug": "vite-react",
+      "port": 41100,
+      "start_command": "node stub-server.js --port $PORT",
+      "bundle_id": "com.user.vite-react",
+      "version": "0.1.0",
+      "polyfill_path": "",
+      "backend_port": null,
+      "backend_start_command": null
+    }
+  ]
+}
