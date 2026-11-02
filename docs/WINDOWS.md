@@ -6,6 +6,24 @@
 
 The macOS `app-it` is in daily use and proven across a dozen real projects. I only run macOS, so I will never honestly be able to say "the Windows build works" — and quietly shipping an untested Windows launcher dressed up as "working" would be a lie. So instead of saying "no" forever, I built the Windows version as far as a Mac can take it: a complete, CI-guarded scaffold that mirrors the macOS contract using Windows-native primitives, with every decision that needs real hardware to confirm marked out loud. What's left is the part only a Windows user can finish. If that's you, this page is the doorway.
 
+## Install
+
+In PowerShell:
+
+```powershell
+claude plugin marketplace add Christian-Katzmann/app-it
+claude plugin install app-it-windows@app-it
+```
+
+Then open a local web project in Claude Code and run `/app-it-windows`. Install only `app-it-windows` on Windows: `app-it` makes macOS Dock apps.
+
+### `claude` is not recognized
+
+The Claude Code editor extension or desktop app does not put the `claude` command on your PATH, so PowerShell says `CommandNotFoundException`. Two ways out:
+
+- Install the Claude Code CLI (see the [Claude Code setup docs](https://docs.claude.com/en/docs/claude-code/setup)), open a new PowerShell window, and run the two commands above.
+- Or, in a Claude Code session that has slash commands, run `/plugin marketplace add Christian-Katzmann/app-it`, then `/plugin install app-it-windows@app-it`.
+
 ## The Windows contract
 
 The Windows lane mirrors the macOS one, primitive for primitive. The full reasoning lives in [ADR 0005](decisions/0005-windows-beta-scope.md); the shape of it:

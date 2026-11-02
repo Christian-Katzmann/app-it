@@ -72,6 +72,13 @@ codex plugin marketplace add Christian-Katzmann/app-it
 codex plugin add app-it@app-it
 ```
 
+**Windows (beta):** same marketplace, different plugin. Run these in PowerShell, then use `/app-it-windows`. If PowerShell says `claude` is not recognized, see [docs/WINDOWS.md](docs/WINDOWS.md#claude-is-not-recognized).
+
+```text
+claude plugin marketplace add Christian-Katzmann/app-it
+claude plugin install app-it-windows@app-it
+```
+
 Then, from inside any local web project, ask your assistant:
 
 ```text
